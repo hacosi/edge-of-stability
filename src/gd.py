@@ -9,6 +9,7 @@ from archs import load_architecture
 from utilities import get_gd_optimizer, get_gd_directory, get_loss_and_acc, compute_losses, \
     save_files, save_files_final, get_hessian_eigenvalues, iterate_dataset
 from data import load_dataset, take_first, DATASETS
+from viz import plot_training_results
 
 
 def main(dataset: str, arch_id: str, loss: str, opt: str, lr: float, max_steps: int, neigs: int = 0,
@@ -66,10 +67,15 @@ def main(dataset: str, arch_id: str, loss: str, opt: str, lr: float, max_steps: 
             loss.backward()
         optimizer.step()
 
-    save_files_final(directory,
-                     [("eigs", eigs[:(step + 1) // eig_freq]), ("iterates", iterates[:(step + 1) // iterate_freq]),
-                      ("train_loss", train_loss[:step + 1]), ("test_loss", test_loss[:step + 1]),
-                      ("train_acc", train_acc[:step + 1]), ("test_acc", test_acc[:step + 1])])
+    plot_training_results(
+        directory,
+        train_loss[:step + 1],
+        test_loss[:step + 1],
+        train_acc[:step + 1],
+        test_acc[:step + 1],
+        eigs[:(step + 1) // eig_freq],
+        eig_freq
+    )
     if save_model:
         torch.save(network.state_dict(), f"{directory}/snapshot_final")
 
