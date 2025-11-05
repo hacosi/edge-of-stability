@@ -1,13 +1,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
-
-def plot_training_results(
-    directory, train_loss, test_loss, train_acc, test_acc, eigs, eig_freq
-):
+def plot_training_results(directory, train_loss, test_loss, train_acc, test_acc, eigs, eig_freq):
     """
-    Replaces save_files_final. Generates plots for loss, accuracy, and sharpness over training steps.
+    Replaces save_files_final. Generates and saves plots for loss, accuracy, and sharpness.
     """
+    os.makedirs(directory, exist_ok=True)
 
     steps = np.arange(len(train_loss))
     fig, axes = plt.subplots(2, 2, figsize=(12, 8))
@@ -33,7 +32,7 @@ def plot_training_results(
 
     # --- Plot sharpness (top eigenvalues) ---
     if eig_freq > 0 and len(eigs) > 0:
-        eig_steps = np.arange(0, len(train_loss), eig_freq)[: len(eigs)]
+        eig_steps = np.arange(0, len(train_loss), eig_freq)[:len(eigs)]
         ax = axes[1, 0]
         ax.plot(eig_steps, eigs.cpu())
         ax.set_xlabel("Step")
@@ -43,8 +42,12 @@ def plot_training_results(
     else:
         axes[1, 0].axis("off")
 
-    # --- Hide the last empty subplot or use it for summary text ---
+    # --- Hide the last empty subplot or add summary text ---
     axes[1, 1].axis("off")
 
-    plt.tight_layout()
-    plt.show()
+    plt.tight_layout(rect=[0, 0, 1, 0.96])  # leave room for suptitle
+    save_path = os.path.join(directory, "training_summary.png")
+    plt.savefig(save_path)
+    plt.close(fig)
+    print(f"Saved training plots to {save_path}")
+
