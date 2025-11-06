@@ -14,7 +14,7 @@ import os
 # the default value for "physical batch size", which is the largest batch size that we try to put on the GPU
 DEFAULT_PHYS_BS = 1000
 RESULTS_DIR = "./results"
-os.makdedirs(RESULTS_DIR, exist_ok=True)
+os.makedirs(RESULTS_DIR, exist_ok=True)
 
 def get_gd_path(dataset: str, lr: float, arch_id: str, seed: int, opt: str, loss: str, beta: float = None):
     """ Return the name for which the results png should be trained under. """

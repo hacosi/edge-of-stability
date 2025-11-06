@@ -2,11 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-def plot_training_results(directory, train_loss, test_loss, train_acc, test_acc, eigs, eig_freq):
+def plot_training_results(path, train_loss, test_loss, train_acc, test_acc, eigs, eig_freq):
     """
     Replaces save_files_final. Generates and saves plots for loss, accuracy, and sharpness.
     """
-    os.makedirs(directory, exist_ok=True)
 
     steps = np.arange(len(train_loss))
     fig, axes = plt.subplots(2, 2, figsize=(12, 8))
@@ -46,7 +45,7 @@ def plot_training_results(directory, train_loss, test_loss, train_acc, test_acc,
     axes[1, 1].axis("off")
 
     plt.tight_layout(rect=[0, 0, 1, 0.96])  # leave room for suptitle
-    save_path = os.path.join(directory, "training_summary.png")
+    save_path = os.path.join(path, "training_summary.png")
     plt.savefig(save_path)
     plt.close(fig)
     print(f"Saved training plots to {save_path}")
