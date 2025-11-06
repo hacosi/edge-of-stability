@@ -7,7 +7,7 @@ import argparse
 
 from archs import load_architecture
 from utilities import get_gd_optimizer, get_gd_directory, get_loss_and_acc, compute_losses, \
-    save_files, save_files_final, get_hessian_eigenvalues, iterate_dataset
+    save_files, save_files_final, get_hessian_eigenvalues, iterate_dataset, get_gd_path
 from data import load_dataset, take_first, DATASETS
 from viz import plot_training_results
 
@@ -16,9 +16,11 @@ def main(dataset: str, arch_id: str, loss: str, opt: str, lr: float, max_steps: 
          physical_batch_size: int = 1000, eig_freq: int = -1, iterate_freq: int = -1, save_freq: int = -1,
          save_model: bool = False, beta: float = 0.0, nproj: int = 0,
          loss_goal: float = None, acc_goal: float = None, abridged_size: int = 5000, seed: int = 0):
-    directory = get_gd_directory(dataset, lr, arch_id, seed, opt, loss, beta)
-    print(f"output directory: {directory}")
-    makedirs(directory, exist_ok=True)
+    # directory = get_gd_directory(dataset, lr, arch_id, seed, opt, loss, beta)
+    path = get_gd_path(dataset, lr, arch_id, seed, opt, loss, beta)
+    # print(f"output directory: {directory}")
+
+    # makedirs(directory, exist_ok=True)
 
     train_dataset, test_dataset = load_dataset(dataset, loss)
     abridged_train = take_first(train_dataset, abridged_size)
@@ -51,11 +53,11 @@ def main(dataset: str, arch_id: str, loss: str, opt: str, lr: float, max_steps: 
         if iterate_freq != -1 and step % iterate_freq == 0:
             iterates[step // iterate_freq, :] = projectors.mv(parameters_to_vector(network.parameters()).cpu().detach())
 
-        if save_freq != -1 and step % save_freq == 0:
-            save_files(directory, [("eigs", eigs[:step // eig_freq]), ("iterates", iterates[:step // iterate_freq]),
-                                   ("train_loss", train_loss[:step]), ("test_loss", test_loss[:step]),
-                                   ("train_acc", train_acc[:step]), ("test_acc", test_acc[:step])])
-
+        # if save_freq != -1 and step % save_freq == 0:
+        #     save_files(directory, [("eigs", eigs[:step // eig_freq]), ("iterates", iterates[:step // iterate_freq]),
+        #                            ("train_loss", train_loss[:step]), ("test_loss", test_loss[:step]),
+        #                            ("train_acc", train_acc[:step]), ("test_acc", test_acc[:step])])
+        #
         print(f"{step}\t{train_loss[step]:.3f}\t{train_acc[step]:.3f}\t{test_loss[step]:.3f}\t{test_acc[step]:.3f}")
 
         if (loss_goal != None and train_loss[step] < loss_goal) or (acc_goal != None and train_acc[step] > acc_goal):
@@ -68,7 +70,8 @@ def main(dataset: str, arch_id: str, loss: str, opt: str, lr: float, max_steps: 
         optimizer.step()
 
     plot_training_results(
-        directory,
+        # directory,
+        path,
         train_loss[:step + 1],
         test_loss[:step + 1],
         train_acc[:step + 1],

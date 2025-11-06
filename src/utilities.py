@@ -16,8 +16,16 @@ DEFAULT_PHYS_BS = 1000
 RESULTS_DIR = "./results"
 os.makdedirs(RESULTS_DIR, exist_ok=True)
 
+def get_gd_path(dataset: str, lr: float, arch_id: str, seed: int, opt: str, loss: str, beta: float = None):
+    """ Return the name for which the results png should be trained under. """
+    path = f"{RESULTS_DIR}_{dataset}_{arch_id}_seed_{seed}_{loss}_{opt}"
+    if opt == "gd":
+        return f"{path}_lr_{lr}"
+    elif opt == "polyak" or opt == "nesterov":
+        return f"{path}_lr_{lr}_beta_{beta}"
 
-def get_gd_directory(dataset: str, lr: float, arch_id: str, seed: int, opt: str, loss: str, beta: float = None):
+
+def get_gd_name(dataset: str, lr: float, arch_id: str, seed: int, opt: str, loss: str, beta: float = None):
     """Return the directory in which the results should be saved."""
     os.makedirs(RESULTS_DIR, exist_ok=True)
     directory = f"{RESULTS_DIR}/{dataset}/{arch_id}/seed_{seed}/{loss}/{opt}/"
