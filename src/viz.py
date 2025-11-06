@@ -45,7 +45,7 @@ def plot_training_results(path, train_loss, test_loss, train_acc, test_acc, eigs
     axes[1, 1].axis("off")
 
     plt.tight_layout(rect=[0, 0, 1, 0.96])  # leave room for suptitle
-    save_path = os.path.join(path, "training_summary.png")
+    save_path = f"{path}.png"
     plt.savefig(save_path)
     plt.close(fig)
     print(f"Saved training plots to {save_path}")
