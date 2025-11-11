@@ -223,6 +223,11 @@ if __name__ == "__main__":
         default=False,
         help="if 'true', save model weights at end of training",
     )
+    parser.add_argument(
+        "--regions_freq",
+        type=int,
+        default=-1,
+    )
 
     args = parser.parse_args()
     main(
