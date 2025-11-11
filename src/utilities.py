@@ -279,7 +279,7 @@ def num_linear_regions_pier(
     model: nn.Module,
     X: torch.Tensor,
     y: torch.Tensor,
-    device: Optional[str] = None,
+    device: Optional[str] = "cuda",
     num_samples_pairs: int = 10,
     num_samples_line: int = 10,
     max_attempts: int = 1000,
@@ -350,7 +350,7 @@ def num_linear_regions_pier(
 def num_linear_regions_hanin(
     model: nn.Module,
     X: torch.Tensor,
-    device: Optional[str] = None,
+    device: Optional[str] = "cuda",
     num_samples_pairs: int = 10,
     num_samples_line: int = 10,
     max_attempts: int = 1000,

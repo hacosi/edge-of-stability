@@ -96,8 +96,13 @@ def main(
 
         breakpoint()
         if regions_freq != -1 and step % regions_freq == 0:
-            # regions_pier[step // regions_freq] = num_linear_regions_pier()
-            pass
+            X = train_dataset.tensors[0]
+            y = train_dataset.tensors[1]
+
+            regions_pier[step //
+                         regions_freq] = num_linear_regions_pier(model=network, X=X, y=y)
+            regions_hanin[step //
+                          regions_freq] = num_linear_regions_hanin(model=network, X=X)
 
             # regions_hanin[step // regions_freq] = num_linear_regions_hanin()
 
@@ -113,7 +118,9 @@ def main(
         # print(f"{step}\t{train_loss[step]:.3f}\t{train_acc[step]:.3f}\t{
         # test_loss[step]:.3f}\t{test_acc[step]:.3f}")
 
-        if (loss_goal != None and train_loss[step] < loss_goal) or (acc_goal != None and train_acc[step] > acc_goal):
+        if (loss_goal is not None and train_loss[step] < loss_goal) or (
+            acc_goal is not None and train_acc[step] > acc_goal
+        ):
             break
 
         optimizer.zero_grad()
