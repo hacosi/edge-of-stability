@@ -94,7 +94,6 @@ def main(
             )
             print("eigenvalues: ", eigs[step // eig_freq, :])
 
-        breakpoint()
         if regions_freq != -1 and step % regions_freq == 0:
             X = train_dataset.tensors[0]
             y = train_dataset.tensors[1]
