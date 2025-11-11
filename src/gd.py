@@ -102,11 +102,11 @@ def main(
             regions_pier[step //
                          regions_freq] = num_linear_regions_pier(model=network, X=X, y=y)
             print("Pier Regions: ", regions_pier[step // regions_freq])
-            print("computing hanin regions")
-            regions_hanin[step //
-                          regions_freq] = num_linear_regions_hanin(model=network, X=X)
-            print("Hanin Regions: ", regions_hanin[step // regions_hanin])
-
+            # print("computing hanin regions")
+            # regions_hanin[step //
+            #               regions_freq] = num_linear_regions_hanin(model=network, X=X)
+            # print("Hanin Regions: ", regions_hanin[step // regions_hanin])
+            #
         if iterate_freq != -1 and step % iterate_freq == 0:
             iterates[step // iterate_freq, :] = projectors.mv(
                 parameters_to_vector(network.parameters()).cpu().detach())
