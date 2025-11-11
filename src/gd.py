@@ -98,12 +98,13 @@ def main(
             X = train_dataset.tensors[0]
             y = train_dataset.tensors[1]
 
+            print("Computing pier regions")
             regions_pier[step //
                          regions_freq] = num_linear_regions_pier(model=network, X=X, y=y)
+            print("Pier Regions: ", regions_pier[step // regions_freq])
+            print("computing hanin regions")
             regions_hanin[step //
                           regions_freq] = num_linear_regions_hanin(model=network, X=X)
-
-            print("Pier Regions: ", regions_pier[step // regions_freq])
             print("Hanin Regions: ", regions_hanin[step // regions_hanin])
 
         if iterate_freq != -1 and step % iterate_freq == 0:
