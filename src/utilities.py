@@ -311,6 +311,7 @@ def num_linear_regions_pier(
             x2 = X[idx2].to(device)
             a = torch.linspace(0.0, 1.0, steps=num_samples_line,
                                device=device).unsqueeze(1)  # (L,1)
+            breakpoint()
             pts = (1 - a) * x1.unsqueeze(0) + a * x2.unsqueeze(0)  # (L, D)
             lines_on_device.append(pts)
             accepted += 1
