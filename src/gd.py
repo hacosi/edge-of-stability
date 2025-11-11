@@ -250,4 +250,5 @@ if __name__ == "__main__":
         acc_goal=args.acc_goal,
         abridged_size=args.abridged_size,
         seed=args.seed,
+        regions_freq=args.regions_freq,
     )
