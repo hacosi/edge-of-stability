@@ -59,7 +59,8 @@ def main(
     network = load_architecture(arch_id, dataset).cuda()
 
     torch.manual_seed(7)
-    projectors = torch.randn(nproj, len(parameters_to_vector(network.parameters())))
+    projectors = torch.randn(nproj, len(
+        parameters_to_vector(network.parameters())))
 
     optimizer = get_gd_optimizer(network.parameters(), opt, lr, beta)
 
@@ -73,7 +74,8 @@ def main(
         max_steps // iterate_freq if iterate_freq > 0 else 0, len(projectors)
     )
     eigs = torch.zeros(max_steps // eig_freq if eig_freq >= 0 else 0, neigs)
-    regions_pier = torch.zeros(max_steps // regions_freq if regions_freq >= 0 else 0)
+    regions_pier = torch.zeros(
+        max_steps // regions_freq if regions_freq >= 0 else 0)
     regions_hanin = torch.zeros_like(regions_pier)
 
     for step in range(0, max_steps):
@@ -94,14 +96,12 @@ def main(
             )
             print("eigenvalues: ", eigs[step // eig_freq, :])
 
+        breakpoint()
         if regions_freq != -1 and step % regions_freq == 0:
-            breakpoint()
-            regions_pier[step // regions_freq] = num_linear_regions_pier(
-                model=model,
-                X=train_dataset,
-            )
+            # regions_pier[step // regions_freq] = num_linear_regions_pier()
+            pass
 
-            regions_hanin[step // regions_freq] = num_linear_regions_hanin()
+            # regions_hanin[step // regions_freq] = num_linear_regions_hanin()
 
         if iterate_freq != -1 and step % iterate_freq == 0:
             iterates[step // iterate_freq, :] = projectors.mv(
@@ -144,7 +144,8 @@ def main(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Train using gradient descent.")
+    parser = argparse.ArgumentParser(
+        description="Train using gradient descent.")
     parser.add_argument(
         "dataset", type=str, choices=DATASETS, help="which dataset to train"
     )
