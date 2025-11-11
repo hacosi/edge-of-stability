@@ -16,8 +16,9 @@ DEFAULT_PHYS_BS = 1000
 RESULTS_DIR = "./results"
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
+
 def get_gd_path(dataset: str, lr: float, arch_id: str, seed: int, opt: str, loss: str, beta: float = None):
-    """ Return the name for which the results png should be trained under. """
+    """Return the name for which the results png should be trained under."""
     path = f"{RESULTS_DIR}_{dataset}_{arch_id}_seed_{seed}_{loss}_{opt}"
     if opt == "gd":
         return f"{path}_lr_{lr}"
@@ -56,30 +57,31 @@ def get_gd_optimizer(parameters, opt: str, lr: float, momentum: float) -> Optimi
 
 def save_files(directory: str, arrays: List[Tuple[str, torch.Tensor]]):
     """Save a bunch of tensors."""
-    for (arr_name, arr) in arrays:
+    for arr_name, arr in arrays:
         torch.save(arr, f"{directory}/{arr_name}")
 
 
 def save_files_final(directory: str, arrays: List[Tuple[str, torch.Tensor]]):
     """Save a bunch of tensors."""
-    for (arr_name, arr) in arrays:
+    for arr_name, arr in arrays:
         torch.save(arr, f"{directory}/{arr_name}_final")
 
 
 def iterate_dataset(dataset: Dataset, batch_size: int):
     """Iterate through a dataset, yielding batches of data."""
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
-    for (batch_X, batch_y) in loader:
+    for batch_X, batch_y in loader:
         yield batch_X.cuda(), batch_y.cuda()
 
 
-def compute_losses(network: nn.Module, loss_functions: List[nn.Module], dataset: Dataset,
-                   batch_size: int = DEFAULT_PHYS_BS):
+def compute_losses(
+    network: nn.Module, loss_functions: List[nn.Module], dataset: Dataset, batch_size: int = DEFAULT_PHYS_BS
+):
     """Compute loss over a dataset."""
     L = len(loss_functions)
-    losses = [0. for l in range(L)]
+    losses = [0.0 for l in range(L)]
     with torch.no_grad():
-        for (X, y) in iterate_dataset(dataset, batch_size):
+        for X, y in iterate_dataset(dataset, batch_size):
             preds = network(X)
             for l, loss_fn in enumerate(loss_functions):
                 losses[l] += loss_fn(preds, y) / len(dataset)
@@ -87,31 +89,39 @@ def compute_losses(network: nn.Module, loss_functions: List[nn.Module], dataset:
 
 
 def get_loss_and_acc(loss: str):
-    """Return modules to compute the loss and accuracy.  The loss module should be "sum" reduction. """
+    """Return modules to compute the loss and accuracy.  The loss module should be "sum" reduction."""
     if loss == "mse":
         return SquaredLoss(), SquaredAccuracy()
     elif loss == "ce":
-        return nn.CrossEntropyLoss(reduction='sum'), AccuracyCE()
+        return nn.CrossEntropyLoss(reduction="sum"), AccuracyCE()
     raise NotImplementedError(f"no such loss function: {loss}")
 
 
-def compute_hvp(network: nn.Module, loss_fn: nn.Module,
-                dataset: Dataset, vector: Tensor, physical_batch_size: int = DEFAULT_PHYS_BS, P: Tensor = None):
+def compute_hvp(
+    network: nn.Module,
+    loss_fn: nn.Module,
+    dataset: Dataset,
+    vector: Tensor,
+    physical_batch_size: int = DEFAULT_PHYS_BS,
+    P: Tensor = None,
+):
     """Compute a Hessian-vector product.
-    
+
     If the optional preconditioner P is not set to None, return P^{-1/2} H P^{-1/2} v rather than H v.
     """
     p = len(parameters_to_vector(network.parameters()))
     n = len(dataset)
-    hvp = torch.zeros(p, dtype=torch.float, device='cuda')
+    hvp = torch.zeros(p, dtype=torch.float, device="cuda")
     vector = vector.cuda()
     if P is not None:
         vector = vector / P.cuda().sqrt()
-    for (X, y) in iterate_dataset(dataset, physical_batch_size):
+    for X, y in iterate_dataset(dataset, physical_batch_size):
         loss = loss_fn(network(X), y) / n
-        grads = torch.autograd.grad(loss, inputs=network.parameters(), create_graph=True)
+        grads = torch.autograd.grad(
+            loss, inputs=network.parameters(), create_graph=True)
         dot = parameters_to_vector(grads).mul(vector).sum()
-        grads = [g.contiguous() for g in torch.autograd.grad(dot, network.parameters(), retain_graph=True)]
+        grads = [g.contiguous() for g in torch.autograd.grad(
+            dot, network.parameters(), retain_graph=True)]
         hvp += parameters_to_vector(grads)
     if P is not None:
         hvp = hvp / P.cuda().sqrt()
@@ -119,8 +129,8 @@ def compute_hvp(network: nn.Module, loss_fn: nn.Module,
 
 
 def lanczos(matrix_vector, dim: int, neigs: int):
-    """ Invoke the Lanczos algorithm to compute the leading eigenvalues and eigenvectors of a matrix / linear operator
-    (which we can access via matrix-vector products). """
+    """Invoke the Lanczos algorithm to compute the leading eigenvalues and eigenvectors of a matrix / linear operator
+    (which we can access via matrix-vector products)."""
 
     def mv(vec: np.ndarray):
         gpu_vec = torch.tensor(vec, dtype=torch.float).cuda()
@@ -128,37 +138,45 @@ def lanczos(matrix_vector, dim: int, neigs: int):
 
     operator = LinearOperator((dim, dim), matvec=mv)
     evals, evecs = eigsh(operator, neigs)
-    return torch.from_numpy(np.ascontiguousarray(evals[::-1]).copy()).float(), \
-           torch.from_numpy(np.ascontiguousarray(np.flip(evecs, -1)).copy()).float()
+    return torch.from_numpy(np.ascontiguousarray(evals[::-1]).copy()).float(), torch.from_numpy(
+        np.ascontiguousarray(np.flip(evecs, -1)).copy()
+    ).float()
 
 
-def get_hessian_eigenvalues(network: nn.Module, loss_fn: nn.Module, dataset: Dataset,
-                            neigs=6, physical_batch_size=1000, P=None):
-    """ Compute the leading Hessian eigenvalues.
-    
+def get_hessian_eigenvalues(
+    network: nn.Module, loss_fn: nn.Module, dataset: Dataset, neigs=6, physical_batch_size=1000, P=None
+):
+    """Compute the leading Hessian eigenvalues.
+
     If preconditioner P is not set to None, return top eigenvalue of P^{-1/2} H P^{-1/2} rather than H.
     """
-    hvp_delta = lambda delta: compute_hvp(network, loss_fn, dataset,
-                                          delta, physical_batch_size=physical_batch_size, P=P).detach().cpu()
+    hvp_delta = (
+        lambda delta: compute_hvp(
+            network, loss_fn, dataset, delta, physical_batch_size=physical_batch_size, P=P)
+        .detach()
+        .cpu()
+    )
     nparams = len(parameters_to_vector((network.parameters())))
     evals, evecs = lanczos(hvp_delta, nparams, neigs=neigs)
     return evals
 
 
-def compute_gradient(network: nn.Module, loss_fn: nn.Module,
-                     dataset: Dataset, physical_batch_size: int = DEFAULT_PHYS_BS):
-    """ Compute the gradient of the loss function at the current network parameters. """
+def compute_gradient(
+    network: nn.Module, loss_fn: nn.Module, dataset: Dataset, physical_batch_size: int = DEFAULT_PHYS_BS
+):
+    """Compute the gradient of the loss function at the current network parameters."""
     p = len(parameters_to_vector(network.parameters()))
-    average_gradient = torch.zeros(p, device='cuda')
-    for (X, y) in iterate_dataset(dataset, physical_batch_size):
+    average_gradient = torch.zeros(p, device="cuda")
+    for X, y in iterate_dataset(dataset, physical_batch_size):
         batch_loss = loss_fn(network(X), y) / len(dataset)
-        batch_gradient = parameters_to_vector(torch.autograd.grad(batch_loss, inputs=network.parameters()))
+        batch_gradient = parameters_to_vector(
+            torch.autograd.grad(batch_loss, inputs=network.parameters()))
         average_gradient += batch_gradient
     return average_gradient
 
 
 class AtParams(object):
-    """ Within a with block, install a new set of parameters into a network.
+    """Within a with block, install a new set of parameters into a network.
 
     Usage:
 
@@ -181,9 +199,10 @@ class AtParams(object):
         vector_to_parameters(self.stash, self.network.parameters())
 
 
-def compute_gradient_at_theta(network: nn.Module, loss_fn: nn.Module, dataset: Dataset,
-                              theta: torch.Tensor, batch_size=DEFAULT_PHYS_BS):
-    """ Compute the gradient of the loss function at arbitrary network parameters "theta".  """
+def compute_gradient_at_theta(
+    network: nn.Module, loss_fn: nn.Module, dataset: Dataset, theta: torch.Tensor, batch_size=DEFAULT_PHYS_BS
+):
+    """Compute the gradient of the loss function at arbitrary network parameters "theta"."""
     with AtParams(network, theta):
         return compute_gradient(network, loss_fn, dataset, physical_batch_size=batch_size)
 
@@ -213,12 +232,15 @@ class VoidLoss(nn.Module):
     def forward(self, X, Y):
         return 0
 
+
 def _make_hook(preacts: List[torch.Tensor]):
     def _hook(mod, inp, out):
         # inp[0] is pre-activation for nn.ReLU; keep on the same device, detached.
         z = inp[0].detach()
         preacts.append(z)
+
     return _hook
+
 
 def _collect_preacts_for_batch_on_device(model: nn.Module, batch: torch.Tensor, device: Optional[str] = None):
     """
@@ -268,7 +290,10 @@ def num_linear_regions_pier(
     compute per-line unique activation patterns and return the average count.
     """
     N = X.size(0)
-    device = device or (next(model.parameters()).device if any(p.requires_grad for p in model.parameters()) else torch.device("cpu"))
+    device = device or (
+        next(model.parameters()).device if any(
+            p.requires_grad for p in model.parameters()) else torch.device("cpu")
+    )
 
     lines_on_device = []  # list of tensors on `device`, each shape (L, D)
     attempts = 0
@@ -284,7 +309,8 @@ def num_linear_regions_pier(
         if int(y[idx1].item()) != int(y[idx2].item()):
             x1 = X[idx1].to(device)
             x2 = X[idx2].to(device)
-            a = torch.linspace(0.0, 1.0, steps=num_samples_line, device=device).unsqueeze(1)  # (L,1)
+            a = torch.linspace(0.0, 1.0, steps=num_samples_line,
+                               device=device).unsqueeze(1)  # (L,1)
             pts = (1 - a) * x1.unsqueeze(0) + a * x2.unsqueeze(0)  # (L, D)
             lines_on_device.append(pts)
             accepted += 1
@@ -339,7 +365,10 @@ def num_linear_regions_hanin(
     Returns the average number of unique patterns along sampled lines.
     """
     N = X.size(0)
-    device = device or (next(model.parameters()).device if any(p.requires_grad for p in model.parameters()) else torch.device("cpu"))
+    device = device or (
+        next(model.parameters()).device if any(
+            p.requires_grad for p in model.parameters()) else torch.device("cpu")
+    )
 
     # compute data envelope radius (L2)
     with torch.no_grad():
@@ -368,7 +397,8 @@ def num_linear_regions_hanin(
         # endpoints are -s*xp and +s*xp (opposite directions through origin)
         e1 = -s * xp
         e2 = +s * xp
-        a = torch.linspace(0.0, 1.0, steps=num_samples_line, device=device).unsqueeze(1)  # (L,1)
+        a = torch.linspace(0.0, 1.0, steps=num_samples_line,
+                           device=device).unsqueeze(1)  # (L,1)
         pts = (1 - a) * e1.unsqueeze(0) + a * e2.unsqueeze(0)  # (L, D)
         lines_on_device.append(pts)
         accepted += 1
@@ -403,6 +433,8 @@ def num_linear_regions_hanin(
         regions_per_line.append(unique_patterns.shape[0])
 
     return float(np.mean(regions_per_line))
+
+
 # def _make_hook():
 #     def _hook(mod, inp, out):
 #         z = inp[0].detach().cpu()
@@ -513,7 +545,4 @@ def num_linear_regions_humayan():
     # Sample P orthonormal vectors in input space
     # Get convex hull neighborbood about the point
     # Take the vertices of convex hull and ?count linear regions on each?
-    while True:
-
-    
-
+    pass
