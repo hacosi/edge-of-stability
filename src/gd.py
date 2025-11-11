@@ -71,8 +71,7 @@ def main(
         torch.zeros(max_steps),
     )
     iterates = torch.zeros(
-        max_steps // iterate_freq if iterate_freq > 0 else 0, len(projectors)
-    )
+        max_steps // iterate_freq if iterate_freq > 0 else 0, len(projectors))
     eigs = torch.zeros(max_steps // eig_freq if eig_freq >= 0 else 0, neigs)
     regions_pier = torch.zeros(
         max_steps // regions_freq if regions_freq >= 0 else 0)
@@ -83,8 +82,7 @@ def main(
             network, [loss_fn, acc_fn], train_dataset, physical_batch_size
         )
         test_loss[step], test_acc[step] = compute_losses(
-            network, [loss_fn, acc_fn], test_dataset, physical_batch_size
-        )
+            network, [loss_fn, acc_fn], test_dataset, physical_batch_size)
 
         if eig_freq != -1 and step % eig_freq == 0:
             eigs[step // eig_freq, :] = get_hessian_eigenvalues(
@@ -105,22 +103,17 @@ def main(
 
         if iterate_freq != -1 and step % iterate_freq == 0:
             iterates[step // iterate_freq, :] = projectors.mv(
-                parameters_to_vector(network.parameters()).cpu().detach()
-            )
+                parameters_to_vector(network.parameters()).cpu().detach())
 
         # if save_freq != -1 and step % save_freq == 0:
         #     save_files(directory, [("eigs", eigs[:step // eig_freq]), ("iterates", iterates[:step // iterate_freq]),
         #                            ("train_loss", train_loss[:step]), ("test_loss", test_loss[:step]),
         #                            ("train_acc", train_acc[:step]), ("test_acc", test_acc[:step])])
         #
-        print(
-            f"{step}\t{train_loss[step]:.3f}\t{train_acc[step]:.3f}\t{
-                test_loss[step]:.3f}\t{test_acc[step]:.3f}"
-        )
+        print(f"{step}\t{train_loss[step]:.3f}\t{train_acc[step]:.3f}\t{
+              test_loss[step]:.3f}\t{test_acc[step]:.3f}")
 
-        if (loss_goal != None and train_loss[step] < loss_goal) or (
-            acc_goal != None and train_acc[step] > acc_goal
-        ):
+        if (loss_goal != None and train_loss[step] < loss_goal) or (acc_goal != None and train_acc[step] > acc_goal):
             break
 
         optimizer.zero_grad()
@@ -146,19 +139,15 @@ def main(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Train using gradient descent.")
-    parser.add_argument(
-        "dataset", type=str, choices=DATASETS, help="which dataset to train"
-    )
-    parser.add_argument(
-        "arch_id", type=str, help="which network architectures to train"
-    )
-    parser.add_argument(
-        "loss", type=str, choices=["ce", "mse"], help="which loss function to use"
-    )
+    parser.add_argument("dataset", type=str, choices=DATASETS,
+                        help="which dataset to train")
+    parser.add_argument("arch_id", type=str,
+                        help="which network architectures to train")
+    parser.add_argument("loss", type=str, choices=[
+                        "ce", "mse"], help="which loss function to use")
     parser.add_argument("lr", type=float, help="the learning rate")
-    parser.add_argument(
-        "max_steps", type=int, help="the maximum number of gradient steps to train for"
-    )
+    parser.add_argument("max_steps", type=int,
+                        help="the maximum number of gradient steps to train for")
     parser.add_argument(
         "--opt",
         type=str,
@@ -193,18 +182,16 @@ if __name__ == "__main__":
         type=float,
         help="terminate training if the train loss ever crosses this value",
     )
-    parser.add_argument(
-        "--neigs", type=int, help="the number of top eigenvalues to compute"
-    )
+    parser.add_argument("--neigs", type=int,
+                        help="the number of top eigenvalues to compute")
     parser.add_argument(
         "--eig_freq",
         type=int,
         default=-1,
         help="the frequency at which we compute the top Hessian eigenvalues (-1 means never)",
     )
-    parser.add_argument(
-        "--nproj", type=int, default=0, help="the dimension of random projections"
-    )
+    parser.add_argument("--nproj", type=int, default=0,
+                        help="the dimension of random projections")
     parser.add_argument(
         "--iterate_freq",
         type=int,
