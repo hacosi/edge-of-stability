@@ -328,6 +328,7 @@ def num_linear_regions_pier(
     # Run forward pass and collect preacts (on device)
     preacts = _collect_preacts_for_batch_on_device(model, batch, device=device)
 
+    breakpoint()
     if not preacts:
         return 1.0
 
