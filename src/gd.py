@@ -110,8 +110,8 @@ def main(
         #                            ("train_loss", train_loss[:step]), ("test_loss", test_loss[:step]),
         #                            ("train_acc", train_acc[:step]), ("test_acc", test_acc[:step])])
         #
-        print(f"{step}\t{train_loss[step]:.3f}\t{train_acc[step]:.3f}\t{
-              test_loss[step]:.3f}\t{test_acc[step]:.3f}")
+        # print(f"{step}\t{train_loss[step]:.3f}\t{train_acc[step]:.3f}\t{
+        # test_loss[step]:.3f}\t{test_acc[step]:.3f}")
 
         if (loss_goal != None and train_loss[step] < loss_goal) or (acc_goal != None and train_acc[step] > acc_goal):
             break
