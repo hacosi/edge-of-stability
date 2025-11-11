@@ -306,7 +306,7 @@ def num_linear_regions_pier(
         if idx1 == idx2:
             continue
         # compare labels robustly
-        if int(y[idx1].item()) != int(y[idx2].item()):
+        if y[idx1] != y[idx2]:
             x1 = X[idx1].to(device)
             x2 = X[idx2].to(device)
             a = torch.linspace(0.0, 1.0, steps=num_samples_line,
