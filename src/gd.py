@@ -113,7 +113,6 @@ if __name__ == "__main__":
     parser.add_argument("--save_model", type=bool, default=False,
                         help="if 'true', save model weights at end of training")
     args = parser.parse_args()
-
     main(dataset=args.dataset, arch_id=args.arch_id, loss=args.loss, opt=args.opt, lr=args.lr, max_steps=args.max_steps,
          neigs=args.neigs, physical_batch_size=args.physical_batch_size, eig_freq=args.eig_freq,
          iterate_freq=args.iterate_freq, save_freq=args.save_freq, save_model=args.save_model, beta=args.beta,

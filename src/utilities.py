@@ -213,3 +213,307 @@ class VoidLoss(nn.Module):
     def forward(self, X, Y):
         return 0
 
+def _make_hook(preacts: List[torch.Tensor]):
+    def _hook(mod, inp, out):
+        # inp[0] is pre-activation for nn.ReLU; keep on the same device, detached.
+        z = inp[0].detach()
+        preacts.append(z)
+    return _hook
+
+def _collect_preacts_for_batch_on_device(model: nn.Module, batch: torch.Tensor, device: Optional[str] = None):
+    """
+    Run forward pass for `batch` and collect pre-activations for each nn.ReLU module.
+    All collected tensors are on the same device as the model (not moved to CPU here).
+    Returns list of pre-activation tensors (each shape (N_batch, hidden_dim)).
+    """
+    preacts: List[torch.Tensor] = []
+    handles = []
+    for m in model.modules():
+        if isinstance(m, nn.ReLU):
+            handles.append(m.register_forward_hook(_make_hook(preacts)))
+
+    # Keep/restore training mode
+    was_training = model.training
+    model.eval()
+
+    if device is None:
+        try:
+            device = next(model.parameters()).device
+        except StopIteration:
+            device = torch.device("cpu")
+
+    with torch.no_grad():
+        _ = model(batch.to(device))
+
+    # remove hooks and restore training state
+    for h in handles:
+        h.remove()
+    model.train(was_training)
+
+    return preacts
+
+
+def num_linear_regions_pier(
+    model: nn.Module,
+    X: torch.Tensor,
+    y: torch.Tensor,
+    device: Optional[str] = None,
+    num_samples_pairs: int = 10,
+    num_samples_line: int = 10,
+    max_attempts: int = 1000,
+) -> float:
+    """
+    Pier-style: sample pairs with different labels; for each pair sample num_samples_line
+    points along the segment between them. Batch all line points, run forward once,
+    compute per-line unique activation patterns and return the average count.
+    """
+    N = X.size(0)
+    device = device or (next(model.parameters()).device if any(p.requires_grad for p in model.parameters()) else torch.device("cpu"))
+
+    lines_on_device = []  # list of tensors on `device`, each shape (L, D)
+    attempts = 0
+    accepted = 0
+
+    while accepted < num_samples_pairs and attempts < max_attempts:
+        attempts += 1
+        idx1 = torch.randint(0, N, (1,)).item()
+        idx2 = torch.randint(0, N, (1,)).item()
+        if idx1 == idx2:
+            continue
+        # compare labels robustly
+        if int(y[idx1].item()) != int(y[idx2].item()):
+            x1 = X[idx1].to(device)
+            x2 = X[idx2].to(device)
+            a = torch.linspace(0.0, 1.0, steps=num_samples_line, device=device).unsqueeze(1)  # (L,1)
+            pts = (1 - a) * x1.unsqueeze(0) + a * x2.unsqueeze(0)  # (L, D)
+            lines_on_device.append(pts)
+            accepted += 1
+
+    if len(lines_on_device) == 0:
+        return 1.0
+
+    # Batch all line points into one big tensor on device
+    batch = torch.cat(lines_on_device, dim=0)  # (num_lines * L, D) on device
+
+    # Run forward pass and collect preacts (on device)
+    preacts = _collect_preacts_for_batch_on_device(model, batch, device=device)
+
+    if not preacts:
+        return 1.0
+
+    # Build binary masks on device and concatenate along feature axis
+    masks = [(z > 0).to(torch.int8) for z in preacts]  # each (N_total, hidden)
+    mask_concat = torch.cat(masks, dim=1)  # (N_total, total_hidden) on device
+
+    # Move concatenated mask once to CPU for unique computations
+    mask_concat_cpu = mask_concat.cpu()
+
+    L = num_samples_line
+    num_lines = len(lines_on_device)
+    regions_per_line = []
+    for i in range(num_lines):
+        start = i * L
+        end = start + L
+        seg = mask_concat_cpu[start:end]  # (L, total_hidden), on CPU
+        unique_patterns = torch.unique(seg, dim=0)
+        regions_per_line.append(unique_patterns.shape[0])
+
+    return float(np.mean(regions_per_line))
+
+
+def num_linear_regions_hanin(
+    model: nn.Module,
+    X: torch.Tensor,
+    device: Optional[str] = None,
+    num_samples_pairs: int = 10,
+    num_samples_line: int = 10,
+    max_attempts: int = 1000,
+) -> float:
+    """
+    Hanin-style but boundary-to-boundary:
+    - For each sampled xp from X, compute r_max = max_x ||x|| across X (data envelope).
+    - Stretch the ray through xp so endpoints are at +/- (r_max / ||xp||) * xp, i.e.
+      the line segment crosses the data envelope in both directions (opposite endpoints).
+    - Sample num_samples_line points along that segment (boundary-to-boundary).
+    - Batch, forward once, compute unique activation patterns per line.
+    Returns the average number of unique patterns along sampled lines.
+    """
+    N = X.size(0)
+    device = device or (next(model.parameters()).device if any(p.requires_grad for p in model.parameters()) else torch.device("cpu"))
+
+    # compute data envelope radius (L2)
+    with torch.no_grad():
+        norms = X.to(device).norm(dim=1)
+        r_max = float(norms.max().item()) if norms.numel() > 0 else 0.0
+        if r_max == 0.0:
+            # all-zero dataset -> nothing to do; fall back to xp->-xp (or just zero)
+            r_max = 1.0
+
+    lines_on_device = []
+    attempts = 0
+    accepted = 0
+
+    while accepted < num_samples_pairs and attempts < max_attempts:
+        attempts += 1
+        idxp = torch.randint(0, N, (1,)).item()
+        xp = X[idxp].to(device)
+        norm_xp = float(xp.norm().item())
+        if norm_xp == 0.0:
+            # degenerate sample (zero vector) — skip or create a small random direction
+            # here we skip to get a meaningful direction
+            continue
+
+        # scaling factor so that ||s * xp|| = r_max  => s = r_max / ||xp||
+        s = r_max / norm_xp
+        # endpoints are -s*xp and +s*xp (opposite directions through origin)
+        e1 = -s * xp
+        e2 = +s * xp
+        a = torch.linspace(0.0, 1.0, steps=num_samples_line, device=device).unsqueeze(1)  # (L,1)
+        pts = (1 - a) * e1.unsqueeze(0) + a * e2.unsqueeze(0)  # (L, D)
+        lines_on_device.append(pts)
+        accepted += 1
+
+    if len(lines_on_device) == 0:
+        return 1.0
+
+    # Batch all line points into one big tensor on device
+    batch = torch.cat(lines_on_device, dim=0)  # (num_lines * L, D) on device
+
+    # Run forward pass and collect preacts (on device)
+    preacts = _collect_preacts_for_batch_on_device(model, batch, device=device)
+
+    if not preacts:
+        return 1.0
+
+    # Build binary masks on device and concatenate along feature axis
+    masks = [(z > 0).to(torch.int8) for z in preacts]
+    mask_concat = torch.cat(masks, dim=1)  # (N_total, total_hidden) on device
+
+    # Move concatenated mask once to CPU for unique computations
+    mask_concat_cpu = mask_concat.cpu()
+
+    L = num_samples_line
+    num_lines = len(lines_on_device)
+    regions_per_line = []
+    for i in range(num_lines):
+        start = i * L
+        end = start + L
+        seg = mask_concat_cpu[start:end]
+        unique_patterns = torch.unique(seg, dim=0)
+        regions_per_line.append(unique_patterns.shape[0])
+
+    return float(np.mean(regions_per_line))
+# def _make_hook():
+#     def _hook(mod, inp, out):
+#         z = inp[0].detach().cpu()
+#         preacts.append(z)
+#
+#     return _hook
+#
+#
+# def num_linear_regions_pier(
+#     model: nn.Module, X: torch.Tensor, y: torch.Tensor, device: str = "cpu", num_samples_pairs: int = 10, num_samples_line: int = 10,
+# ) -> int:
+#     """
+#     Computes the number of linear regions in the following way:
+#     1. Sample two points with different labels in the input space
+#     2. Sample points in the input space that lie on the line between the two different label points
+#     3. Run a forward pass on these points
+#     4. Count the number of linear regions along the line by checking the activation pattens
+#     5. Repeat from step 1 and average the results
+#
+#     This computation is quite slow, so only perform it occasionally
+#     """
+#     num_regions_all = []
+#     for _ in range(num_samples_pairs):
+#         idx1 = torch.randint(0, X.size(0), (1,)).item()
+#         idx2 = torch.randint(0, X.size(0), (1,)).item()
+#         ys_on_line = []
+#         if y[idx1] != y[idx2]:  # different labels
+#             x1, x2 = X[idx1], X[idx2]
+#             for a in np.linspace(0, 1, num_samples_line):
+#                 x = x1 * (1 - a) + x2 * a
+#                 x = x.unsqueeze(0)
+#                 yh = model(x)
+#                 ys_on_line.append(yh)
+#             num_samples_pairs -= 1
+#
+#         num_regions = 0
+#         for i, _ in enumerate(ys_on_line[1:-1]):
+#             y_delta_2 = ys_on_line[i + 1] - ys_on_line[i]
+#             y_delta_1 = ys_on_line[i] - ys_on_line[i - 1]
+#             if torch.norm(y_delta_2 - y_delta_1) > 1e-5:
+#                 num_regions += 1
+#         num_regions_all.append(num_regions)
+#     return np.mean(num_regions_all)
+#
+#
+# def num_linear_regions_hanin(
+#     model: nn.Module, X: torch.Tensor, device: str = "cpu"
+# ) -> int:
+#     """
+#     Computes the number of linear regions the same as in the "Pier Method" but one of the two sampled points is always the origin
+#     """
+#     # Sample a point from the training data
+#     # Compute the number of linear regions along that line?
+#     # For 5 independent runs, sample 100 lines, take average
+#     num_regions_all = []
+#     for _ in range(num_samples_pairs):
+#         idxp = torch.randint(0, X.size(0), (1,)).item()
+#         ys_on_line = []
+#         xp = X[idxp]
+#         for a in np.linspace(0, 1, num_samples_line):
+#             x = xp * (1 - a) + x2 * a
+#             # should go from boundary to boundary
+#             x = x.unsqueeze(0)
+#             yh = model(x)
+#             ys_on_line.append(yh)
+#         num_samples_pairs -= 1
+#
+#
+#         num_regions = 0
+#         for i, _ in enumerate(ys_on_line[1:-1]):
+#             y_delta_2 = ys_on_line[i + 1] - ys_on_line[i]
+#             y_delta_1 = ys_on_line[i] - ys_on_line[i - 1]
+#             if torch.norm(y_delta_2 - y_delta_1) > 1e-5:
+#                 num_regions += 1
+#         num_regions_all.append(num_regions)
+#     return np.mean(num_regions_all)
+#
+#
+# def COMPUTE LINEAR REGIONS OF BATCH
+#     preacts: List[torch.Tensor] = []
+#     handles = []
+#
+#     for m in model.modules():
+#         if isinstance(m, nn.ReLU):
+#             handles.append(m.register_forward_hook(_make_hook()))
+#
+#     _ = model(X.to(next(model.parameters()).device))
+#
+#     for h in handles:
+#         h.remove()
+#
+#     if not preacts:
+#         return 1
+#
+#     masks = [(z > 0).to(torch.int8) for z in preacts]  # (N, hidden)
+#     mask_concat = torch.cat(masks, dim=1)  # (N, total_hidden)
+#
+#     unique_patterns = torch.unique(mask_concat, dim=0)
+#     num_regions = unique_patterns.shape[0]
+#
+#     return num_regions
+#
+#
+#
+#
+def num_linear_regions_humayan():
+    # Sample point in the training or test set
+    # Sample P orthonormal vectors in input space
+    # Get convex hull neighborbood about the point
+    # Take the vertices of convex hull and ?count linear regions on each?
+    while True:
+
+    
+
