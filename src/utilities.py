@@ -309,10 +309,13 @@ def num_linear_regions_pier(
         if not torch.equal(y[idx1], y[idx2]):
             x1 = X[idx1].to(device)
             x2 = X[idx2].to(device)
-            a = torch.linspace(0.0, 1.0, steps=num_samples_line,
-                               device=device).unsqueeze(1)  # (L,1)
-            breakpoint()
-            pts = (1 - a) * x1.unsqueeze(0) + a * x2.unsqueeze(0)  # (L, D)
+            # a = torch.linspace(0.0, 1.0, steps=num_samples_line,
+            #                    device=device).unsqueeze(1)  # (L,1)
+            #
+            a = torch.linspace(0.0, 1.0, steps=num_samples_line, device=device).view(
+                num_samples_line, *([1] * x1.dim())
+            )
+            pts = (1 - a) * x1 + a * x2  # (L, D)
             lines_on_device.append(pts)
             accepted += 1
 
