@@ -103,7 +103,8 @@ def main(
             regions_hanin[step //
                           regions_freq] = num_linear_regions_hanin(model=network, X=X)
 
-            # regions_hanin[step // regions_freq] = num_linear_regions_hanin()
+            print("Pier Regions: ", regions_pier[step // regions_freq])
+            print("Hanin Regions: ", regions_hanin[step // regions_hanin])
 
         if iterate_freq != -1 and step % iterate_freq == 0:
             iterates[step // iterate_freq, :] = projectors.mv(
