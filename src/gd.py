@@ -129,6 +129,7 @@ def main(
         if (loss_goal is not None and train_loss[step] < loss_goal) or (
             acc_goal is not None and train_acc[step] > acc_goal
         ):
+            print("Hit goal")
             break
 
         optimizer.zero_grad()
@@ -138,7 +139,6 @@ def main(
         optimizer.step()
 
     plot_training_results(
-        # directory,
         path,
         train_loss[: step + 1],
         test_loss[: step + 1],
