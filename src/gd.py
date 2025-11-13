@@ -100,7 +100,6 @@ def main(
             X = train_dataset.tensors[0]
             y = train_dataset.tensors[1]
 
-            print("Computing pier regions")
             regions_pier[step // regions_freq] = num_linear_regions_pier(
                 model=network, X=X, y=y, num_samples_pairs=num_samples_pairs, num_samples_line=num_samples_line
             )
@@ -144,6 +143,8 @@ def main(
         eig_freq,
         regions_pier[: (step + 1) // regions_freq],
         regions_freq,
+        num_samples_line,
+        lr,
     )
     # if save_model:
     #     torch.save(network.state_dict(), f"{directory}/snapshot_final")

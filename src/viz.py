@@ -3,7 +3,9 @@ import numpy as np
 import os
 
 
-def plot_training_results(path, train_loss, test_loss, train_acc, test_acc, eigs, eig_freq, regions_pier, regions_freq):
+def plot_training_results(
+    path, train_loss, test_loss, train_acc, test_acc, eigs, eig_freq, regions_pier, regions_freq, num_samples_line, lr
+):
     """
     Replaces save_files_final. Generates and saves plots for loss, accuracy, and sharpness.
     """
@@ -35,6 +37,7 @@ def plot_training_results(path, train_loss, test_loss, train_acc, test_acc, eigs
         eig_steps = np.arange(0, len(train_loss), eig_freq)[: len(eigs)]
         ax = axes[1, 0]
         ax.plot(eig_steps, eigs.cpu())
+        ax.axhline(y=2 / lr, color="r", linestyle="--", linewidth=1)
         ax.set_xlabel("Step")
         ax.set_ylabel("Eigenvalues (Sharpness)")
         ax.set_title("Top Hessian Eigenvalues")
@@ -50,6 +53,7 @@ def plot_training_results(path, train_loss, test_loss, train_acc, test_acc, eigs
             : len(regions_pier)]
         ax = axes[1, 1]
         ax.plot(regions_steps, regions_pier.cpu())
+        ax.set_ylim(0, num_samples_line)
         ax.set_xlabel("Step")
         ax.set_ylabel("Pier Regions")
         ax.set_title("Pier Count of linear regions")
