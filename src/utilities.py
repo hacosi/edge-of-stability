@@ -272,7 +272,6 @@ def _collect_preacts_for_batch_on_device(model: nn.Module, batch: torch.Tensor, 
         h.remove()
     model.train(was_training)
 
-    breakpoint()
     return preacts
 
 
@@ -289,6 +288,7 @@ def count_linear_regions(model, batch, device):
     # Move concatenated mask once to CPU for unique computations
     mask_concat_cpu = mask_concat.cpu()
 
+    breakpoint()
     return torch.unique(mask_concat_cpu, dim=0)
 
 
