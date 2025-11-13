@@ -150,6 +150,8 @@ def main(
         regions_freq,
         num_samples_line,
         lr,
+        regions_hanin[: (step + 1) // regions_freq],
+        num_hanin_line_samples,
     )
     # if save_model:
     #     torch.save(network.state_dict(), f"{directory}/snapshot_final")

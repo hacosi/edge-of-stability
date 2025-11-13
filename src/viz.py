@@ -4,14 +4,26 @@ import os
 
 
 def plot_training_results(
-    path, train_loss, test_loss, train_acc, test_acc, eigs, eig_freq, regions_pier, regions_freq, num_samples_line, lr
+    path,
+    train_loss,
+    test_loss,
+    train_acc,
+    test_acc,
+    eigs,
+    eig_freq,
+    regions_pier,
+    regions_freq,
+    num_samples_line,
+    lr,
+    regions_hanin,
+    num_hanin_line_samples,
 ):
     """
     Replaces save_files_final. Generates and saves plots for loss, accuracy, and sharpness.
     """
 
     steps = np.arange(len(train_loss))
-    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    fig, axes = plt.subplots(2, 3, figsize=(12, 8))
     fig.suptitle("Training Summary", fontsize=16)
 
     # --- Plot train/test loss ---
@@ -60,6 +72,21 @@ def plot_training_results(
         ax.grid(True)
     else:
         axes[1, 1].axis("off")
+
+    axes[2, 0].axis("off")
+
+    if regions_freq > 0 and len(regions_hanin) > 0:
+        regions_steps = np.arange(0, len(train_loss), regions_freq)[
+            : len(regions_hanin)]
+        ax = axes[2, 1]
+        ax.plot(regions_steps, regions_hanin.cpu())
+        ax.set_ylim(0, num_hanin_line_samples)
+        ax.set_xlabel("Step")
+        ax.set_ylabel("Hanin Regions")
+        ax.set_title("Hanin Count of linear regions")
+        ax.grid(True)
+    else:
+        axes[2, 1].axis("off")
 
     plt.tight_layout(rect=[0, 0, 1, 0.96])  # leave room for suptitle
     save_path = f"{path}.png"
