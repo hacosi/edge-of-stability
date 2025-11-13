@@ -23,7 +23,7 @@ def plot_training_results(
     """
 
     steps = np.arange(len(train_loss))
-    fig, axes = plt.subplots(2, 3, figsize=(12, 8))
+    fig, axes = plt.subplots(3, 2, figsize=(12, 8))
     fig.suptitle("Training Summary", fontsize=16)
 
     # --- Plot train/test loss ---
