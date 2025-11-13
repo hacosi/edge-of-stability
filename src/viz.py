@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-def plot_training_results(path, train_loss, test_loss, train_acc, test_acc, eigs, eig_freq):
+
+def plot_training_results(path, train_loss, test_loss, train_acc, test_acc, eigs, eig_freq, regions_pier, regions_freq):
     """
     Replaces save_files_final. Generates and saves plots for loss, accuracy, and sharpness.
     """
@@ -31,7 +32,7 @@ def plot_training_results(path, train_loss, test_loss, train_acc, test_acc, eigs
 
     # --- Plot sharpness (top eigenvalues) ---
     if eig_freq > 0 and len(eigs) > 0:
-        eig_steps = np.arange(0, len(train_loss), eig_freq)[:len(eigs)]
+        eig_steps = np.arange(0, len(train_loss), eig_freq)[: len(eigs)]
         ax = axes[1, 0]
         ax.plot(eig_steps, eigs.cpu())
         ax.set_xlabel("Step")
@@ -41,12 +42,23 @@ def plot_training_results(path, train_loss, test_loss, train_acc, test_acc, eigs
     else:
         axes[1, 0].axis("off")
 
-    # --- Hide the last empty subplot or add summary text ---
-    axes[1, 1].axis("off")
+    # # --- Hide the last empty subplot or add summary text ---
+    # axes[1, 1].axis("off")
+
+    if regions_freq > 0 and len(regions_pier) > 0:
+        regions_steps = np.arange(0, len(train_loss), regions_freq)[
+            : len(regions_pier)]
+        ax = axes[1, 1]
+        ax.plot(regions_steps, regions_pier.cpu())
+        ax.set_xlabel("Step")
+        ax.set_ylabel("Pier Regions")
+        ax.set_title("Pier Count of linear regions")
+        ax.grid(True)
+    else:
+        axes[1, 1].axis("off")
 
     plt.tight_layout(rect=[0, 0, 1, 0.96])  # leave room for suptitle
     save_path = f"{path}.png"
     plt.savefig(save_path)
     plt.close(fig)
     print(f"Saved training plots to {save_path}")
-

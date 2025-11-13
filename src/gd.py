@@ -142,6 +142,8 @@ def main(
         test_acc[: step + 1],
         eigs[: (step + 1) // eig_freq],
         eig_freq,
+        regions_pier[: (step + 1) // regions_freq],
+        regions_freq,
     )
     # if save_model:
     #     torch.save(network.state_dict(), f"{directory}/snapshot_final")
