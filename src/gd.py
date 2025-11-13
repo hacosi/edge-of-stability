@@ -45,6 +45,8 @@ def main(
     seed: int = 0,
     num_samples_pairs: int = 10,
     num_samples_line: int = 10,
+    num_hanin_point_samples: int = 10,
+    num_hanin_line_samples: int = 10,
 ):
     # directory = get_gd_directory(dataset, lr, arch_id, seed, opt, loss, beta)
     path = get_gd_path(dataset, lr, arch_id, seed, opt, loss, beta)
@@ -104,11 +106,14 @@ def main(
                 model=network, X=X, y=y, num_samples_pairs=num_samples_pairs, num_samples_line=num_samples_line
             )
             print("Pier Regions: ", regions_pier[step // regions_freq])
-            # print("computing hanin regions")
-            # regions_hanin[step //
-            #               regions_freq] = num_linear_regions_hanin(model=network, X=X)
-            # print("Hanin Regions: ", regions_hanin[step // regions_hanin])
-            #
+            regions_hanin[step // regions_freq] = num_linear_regions_hanin(
+                model=network,
+                X=X,
+                num_hanin_point_samples=num_hanin_point_samples,
+                num_hanin_line_samples=num_hanin_line_samples,
+            )
+            print("Hanin Regions: ", regions_hanin[step // regions_hanin])
+
         if iterate_freq != -1 and step % iterate_freq == 0:
             iterates[step // iterate_freq, :] = projectors.mv(
                 parameters_to_vector(network.parameters()).cpu().detach())
@@ -237,6 +242,8 @@ if __name__ == "__main__":
     )
     parser.add_argument("--num_samples_pairs", type=int, default=10)
     parser.add_argument("--num_samples_line", type=int, default=10)
+    parser.add_argument("--num_hanin_line_samples", type=int, default=10)
+    parser.add_argument("--num_hanin_point_samples", type=int, default=10)
 
     args = parser.parse_args()
     main(
@@ -261,4 +268,6 @@ if __name__ == "__main__":
         regions_freq=args.regions_freq,
         num_samples_line=args.num_samples_line,
         num_samples_pairs=args.num_samples_pairs,
+        num_hanin_line_samples=args.num_hanin_line_samples,
+        num_hanin_point_samples=args.num_hanin_point_samples,
     )
