@@ -248,7 +248,7 @@ def _collect_preacts_for_batch_on_device(model: nn.Module, batch: torch.Tensor, 
     handles = []
     for m in model.modules():
         if isinstance(m, nn.ReLU):
-            handles.append(m.register_forward_hook(_make_hook(preacts)))
+            handles.append(m.register_forward_hook(_make_hook()))
 
     # Keep/restore training mode
     was_training = model.training
@@ -269,6 +269,32 @@ def _collect_preacts_for_batch_on_device(model: nn.Module, batch: torch.Tensor, 
     model.train(was_training)
 
     return preacts
+
+
+def count_linear_regions(model, batch, device):
+    preacts = _collect_preacts_for_batch_on_device(model, batch, device=device)
+
+    if not preacts:
+        return 1.0
+
+    # Build binary masks on device and concatenate along feature axis
+    masks = [(z > 0).to(torch.int8) for z in preacts]  # each (N_total, hidden)
+    mask_concat = torch.cat(masks, dim=1)  # (N_total, total_hidden) on device
+
+    # Move concatenated mask once to CPU for unique computations
+    mask_concat_cpu = mask_concat.cpu()
+
+    L = num_samples_line
+    num_lines = len(lines_on_device)
+    regions_per_line = []
+    for i in range(num_lines):
+        start = i * L
+        end = start + L
+        seg = mask_concat_cpu[start:end]  # (L, total_hidden), on CPU
+        unique_patterns = torch.unique(seg, dim=0)
+        regions_per_line.append(unique_patterns.shape[0])
+
+    return float(np.mean(regions_per_line))
 
 
 def num_linear_regions_pier(
@@ -313,30 +339,7 @@ def num_linear_regions_pier(
     batch = torch.cat(lines_on_device, dim=0)  # (num_lines * L, D) on device
 
     # Run forward pass and collect preacts (on device)
-    preacts = _collect_preacts_for_batch_on_device(model, batch, device=device)
-
-    breakpoint()
-    if not preacts:
-        return 1.0
-
-    # Build binary masks on device and concatenate along feature axis
-    masks = [(z > 0).to(torch.int8) for z in preacts]  # each (N_total, hidden)
-    mask_concat = torch.cat(masks, dim=1)  # (N_total, total_hidden) on device
-
-    # Move concatenated mask once to CPU for unique computations
-    mask_concat_cpu = mask_concat.cpu()
-
-    L = num_samples_line
-    num_lines = len(lines_on_device)
-    regions_per_line = []
-    for i in range(num_lines):
-        start = i * L
-        end = start + L
-        seg = mask_concat_cpu[start:end]  # (L, total_hidden), on CPU
-        unique_patterns = torch.unique(seg, dim=0)
-        regions_per_line.append(unique_patterns.shape[0])
-
-    return float(np.mean(regions_per_line))
+    return count_linear_regions(model, batch, device=device)
 
 
 def num_linear_regions_hanin(
