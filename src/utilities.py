@@ -315,7 +315,7 @@ def num_linear_regions_pier(
     attempts = 0
     accepted = 0
 
-    while accepted < num_samples_line and attempts < max_attempts:
+    while accepted < num_samples_pairs and attempts < max_attempts:
         attempts += 1
         idx1 = torch.randint(0, N, (1,)).item()
         idx2 = torch.randint(0, N, (1,)).item()
