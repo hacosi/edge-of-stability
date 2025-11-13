@@ -327,6 +327,7 @@ def num_linear_regions_pier(
         return 1.0
 
     counts = []
+    breakpoint()
     for batch in lines_on_device:
         counts.append(count_linear_regions(model=model, batch=batch, device=device))
 
