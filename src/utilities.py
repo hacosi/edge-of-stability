@@ -284,6 +284,7 @@ def count_linear_regions(model, batch, device):
     # Move concatenated mask once to CPU for unique computations
     mask_concat_cpu = mask_concat.cpu()
 
+    breakpoint()
     L = num_samples_line
     num_lines = len(lines_on_device)
     regions_per_line = []
