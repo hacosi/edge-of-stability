@@ -112,7 +112,7 @@ def main(
                 num_hanin_point_samples=num_hanin_point_samples,
                 num_hanin_line_samples=num_hanin_line_samples,
             )
-            print("Hanin Regions: ", regions_hanin[step // regions_hanin])
+            print("Hanin Regions: ", regions_hanin[step // regions_freq])
 
         if iterate_freq != -1 and step % iterate_freq == 0:
             iterates[step // iterate_freq, :] = projectors.mv(
