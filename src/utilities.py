@@ -308,13 +308,14 @@ def num_linear_regions_pier(
             x2 = X[idx2].unsqueeze(0).to(device)
             alpha = torch.linspace(
                 0, 1.0, steps=num_samples_line, device=device)
-            breakpoint()
-            # lines_on_device.append(pt)
-            # accepted += 1
+            alpha = alpha.view(-1, 1, 1, 1)
+            pts = (1 - alpha) * x1 + alpha * x2
+            lines_on_device.append(pts)
+            accepted += 1
 
     if len(lines_on_device) == 0:
         return 1.0
-
+    breakpoint()
     # Batch all line points into one big tensor on device
     batch = torch.cat(lines_on_device, dim=0)  # (num_lines * L, D) on device
 
