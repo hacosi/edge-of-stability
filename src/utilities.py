@@ -249,6 +249,7 @@ def _collect_preacts_for_batch_on_device(model: nn.Module, batch: torch.Tensor, 
     for m in model.modules():
         if isinstance(m, nn.ReLU):
             handles.append(m.register_forward_hook(_make_hook()))
+    breakpoint()
 
     # Keep/restore training mode
     was_training = model.training
@@ -327,7 +328,6 @@ def num_linear_regions_pier(
         return 1.0
 
     counts = []
-    breakpoint()
     for batch in lines_on_device:
         counts.append(count_linear_regions(model=model, batch=batch, device=device))
 
