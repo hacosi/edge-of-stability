@@ -306,12 +306,11 @@ def num_linear_regions_pier(
         if not idx1 == idx2 and not torch.equal(y[idx1], y[idx2]):
             x1 = X[idx1].unsqueeze(0).to(device)
             x2 = X[idx2].unsqueeze(0).to(device)
-            a = torch.linspace(0, 1.0, steps=num_samples_line, device=device)
+            alpha = torch.linspace(
+                0, 1.0, steps=num_samples_line, device=device)
             breakpoint()
-            for a in torch.linspace(0.0, 1.0, steps=num_samples_line):
-                pt = (1 - a) * x1 + a * x2  # (L, D)
-                lines_on_device.append(pt)
-                accepted += 1
+            # lines_on_device.append(pt)
+            # accepted += 1
 
     if len(lines_on_device) == 0:
         return 1.0
