@@ -288,8 +288,7 @@ def count_linear_regions(model, batch, device):
     # Move concatenated mask once to CPU for unique computations
     mask_concat_cpu = mask_concat.cpu()
 
-    breakpoint()
-    return torch.unique(mask_concat_cpu, dim=0)
+    return torch.unique(mask_concat_cpu, dim=0).shape[0]
 
 
 def num_linear_regions_pier(
