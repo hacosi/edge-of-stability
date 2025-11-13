@@ -233,21 +233,21 @@ class VoidLoss(nn.Module):
         return 0
 
 
-def _make_hook(preacts: List[torch.Tensor]):
-    def _hook(mod, inp, out):
-        # inp[0] is pre-activation for nn.ReLU; keep on the same device, detached.
-        z = inp[0].detach()
-        preacts.append(z)
-
-    return _hook
-
-
 def _collect_preacts_for_batch_on_device(model: nn.Module, batch: torch.Tensor, device: Optional[str] = None):
     """
     Run forward pass for `batch` and collect pre-activations for each nn.ReLU module.
     All collected tensors are on the same device as the model (not moved to CPU here).
     Returns list of pre-activation tensors (each shape (N_batch, hidden_dim)).
     """
+
+    def _make_hook():
+        def _hook(mod, inp, out):
+            # inp[0] is pre-activation for nn.ReLU; keep on the same device, detached.
+            z = inp[0].detach()
+            preacts.append(z)
+
+        return _hook
+
     preacts: List[torch.Tensor] = []
     handles = []
     for m in model.modules():
