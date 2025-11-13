@@ -117,9 +117,11 @@ def compute_hvp(
         vector = vector / P.cuda().sqrt()
     for X, y in iterate_dataset(dataset, physical_batch_size):
         loss = loss_fn(network(X), y) / n
-        grads = torch.autograd.grad(loss, inputs=network.parameters(), create_graph=True)
+        grads = torch.autograd.grad(
+            loss, inputs=network.parameters(), create_graph=True)
         dot = parameters_to_vector(grads).mul(vector).sum()
-        grads = [g.contiguous() for g in torch.autograd.grad(dot, network.parameters(), retain_graph=True)]
+        grads = [g.contiguous() for g in torch.autograd.grad(
+            dot, network.parameters(), retain_graph=True)]
         hvp += parameters_to_vector(grads)
     if P is not None:
         hvp = hvp / P.cuda().sqrt()
@@ -149,7 +151,8 @@ def get_hessian_eigenvalues(
     If preconditioner P is not set to None, return top eigenvalue of P^{-1/2} H P^{-1/2} rather than H.
     """
     hvp_delta = (
-        lambda delta: compute_hvp(network, loss_fn, dataset, delta, physical_batch_size=physical_batch_size, P=P)
+        lambda delta: compute_hvp(
+            network, loss_fn, dataset, delta, physical_batch_size=physical_batch_size, P=P)
         .detach()
         .cpu()
     )
@@ -166,7 +169,8 @@ def compute_gradient(
     average_gradient = torch.zeros(p, device="cuda")
     for X, y in iterate_dataset(dataset, physical_batch_size):
         batch_loss = loss_fn(network(X), y) / len(dataset)
-        batch_gradient = parameters_to_vector(torch.autograd.grad(batch_loss, inputs=network.parameters()))
+        batch_gradient = parameters_to_vector(
+            torch.autograd.grad(batch_loss, inputs=network.parameters()))
         average_gradient += batch_gradient
     return average_gradient
 
@@ -249,7 +253,6 @@ def _collect_preacts_for_batch_on_device(model: nn.Module, batch: torch.Tensor, 
     for m in model.modules():
         if isinstance(m, nn.ReLU):
             handles.append(m.register_forward_hook(_make_hook()))
-    breakpoint()
 
     # Keep/restore training mode
     was_training = model.training
@@ -269,6 +272,7 @@ def _collect_preacts_for_batch_on_device(model: nn.Module, batch: torch.Tensor, 
         h.remove()
     model.train(was_training)
 
+    breakpoint()
     return preacts
 
 
@@ -304,7 +308,8 @@ def num_linear_regions_pier(
     """
     N = X.size(0)
     device = device or (
-        next(model.parameters()).device if any(p.requires_grad for p in model.parameters()) else torch.device("cpu")
+        next(model.parameters()).device if any(
+            p.requires_grad for p in model.parameters()) else torch.device("cpu")
     )
 
     lines_on_device = []  # list of tensors on `device`, each shape (L, D)
@@ -318,7 +323,8 @@ def num_linear_regions_pier(
         if not idx1 == idx2 and not torch.equal(y[idx1], y[idx2]):
             x1 = X[idx1].unsqueeze(0).to(device)
             x2 = X[idx2].unsqueeze(0).to(device)
-            alpha = torch.linspace(0, 1.0, steps=num_samples_line, device=device)
+            alpha = torch.linspace(
+                0, 1.0, steps=num_samples_line, device=device)
             alpha = alpha.view(-1, 1, 1, 1)
             pts = (1 - alpha) * x1 + alpha * x2
             lines_on_device.append(pts)
@@ -329,7 +335,8 @@ def num_linear_regions_pier(
 
     counts = []
     for batch in lines_on_device:
-        counts.append(count_linear_regions(model=model, batch=batch, device=device))
+        counts.append(count_linear_regions(
+            model=model, batch=batch, device=device))
 
     return np.mean(counts)
 
@@ -353,7 +360,8 @@ def num_linear_regions_hanin(
     """
     N = X.size(0)
     device = device or (
-        next(model.parameters()).device if any(p.requires_grad for p in model.parameters()) else torch.device("cpu")
+        next(model.parameters()).device if any(
+            p.requires_grad for p in model.parameters()) else torch.device("cpu")
     )
 
     # compute data envelope radius (L2)
@@ -383,7 +391,8 @@ def num_linear_regions_hanin(
         # endpoints are -s*xp and +s*xp (opposite directions through origin)
         e1 = -s * xp
         e2 = +s * xp
-        a = torch.linspace(0.0, 1.0, steps=num_samples_line, device=device).unsqueeze(1)  # (L,1)
+        a = torch.linspace(0.0, 1.0, steps=num_samples_line,
+                           device=device).unsqueeze(1)  # (L,1)
         pts = (1 - a) * e1.unsqueeze(0) + a * e2.unsqueeze(0)  # (L, D)
         lines_on_device.append(pts)
         accepted += 1
