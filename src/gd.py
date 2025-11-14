@@ -126,11 +126,11 @@ def main(
         # print(f"{step}\t{train_loss[step]:.3f}\t{train_acc[step]:.3f}\t{
         # test_loss[step]:.3f}\t{test_acc[step]:.3f}")
 
-        if (loss_goal is not None and train_loss[step] < loss_goal) or (
-            acc_goal is not None and train_acc[step] > acc_goal
-        ):
-            print("Hit goal")
-            break
+        # if (loss_goal is not None and train_loss[step] < loss_goal) or (
+        #     acc_goal is not None and train_acc[step] > acc_goal
+        # ):
+        #     print("Hit goal")
+        #     break
 
         optimizer.zero_grad()
         for X, y in iterate_dataset(train_dataset, physical_batch_size):
