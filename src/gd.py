@@ -116,7 +116,7 @@ def main(
                 num_hanin_line_samples=num_hanin_line_samples,
             )
             print("Hanin Regions: ", regions_hanin[step // regions_freq])
-            regions_humayan[step // regions_freq] = num_humayan_samples(
+            regions_humayan[step // regions_freq] = num_linear_regions_humayan(
                 model=network, X=X, num_humayan_samples=num_humayan_samples
             )
 
