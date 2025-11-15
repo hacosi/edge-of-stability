@@ -49,6 +49,7 @@ def main(
     num_hanin_point_samples: int = 10,
     num_hanin_line_samples: int = 10,
     num_humayan_samples: int = 10,
+    num_humayan_orthonormal_vectors: int = 10,
 ):
     # directory = get_gd_directory(dataset, lr, arch_id, seed, opt, loss, beta)
     path = get_gd_path(dataset, lr, arch_id, seed, opt, loss, beta)
@@ -117,8 +118,9 @@ def main(
             )
             print("Hanin Regions: ", regions_hanin[step // regions_freq])
             regions_humayan[step // regions_freq] = num_linear_regions_humayan(
-                model=network, X=X, num_humayan_samples=num_humayan_samples
+                model=network, X=X, num_humayan_samples=num_humayan_samples, p=num_humayan_orthonormal_vectors
             )
+            print("Humayan Regions: ", regions_humayan[step // regions_freq])
 
         if iterate_freq != -1 and step % iterate_freq == 0:
             iterates[step // iterate_freq, :] = projectors.mv(
@@ -159,7 +161,7 @@ def main(
         regions_hanin[: (step + 1) // regions_freq],
         num_hanin_line_samples,
         num_humayan_samples[: (step + 1) // regions_freq],
-        num_humayan_samples,
+        num_humayan_orthonormal_vectors,
     )
     # if save_model:
     #     torch.save(network.state_dict(), f"{directory}/snapshot_final")
@@ -255,6 +257,8 @@ if __name__ == "__main__":
     parser.add_argument("--num_hanin_line_samples", type=int, default=10)
     parser.add_argument("--num_hanin_point_samples", type=int, default=10)
     parser.add_argument("--num_humayan_samples", type=int, default=10)
+    parser.add_argument("--num_humayan_orthonormal_vectors",
+                        type=int, default=10)
 
     args = parser.parse_args()
     main(
@@ -282,4 +286,5 @@ if __name__ == "__main__":
         num_hanin_line_samples=args.num_hanin_line_samples,
         num_hanin_point_samples=args.num_hanin_point_samples,
         num_humayan_samples=args.num_humayan_samples,
+        num_humayan_orthonormal_vectors=args.num_humayan_orthonormal_vectors,
     )

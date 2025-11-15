@@ -17,6 +17,8 @@ def plot_training_results(
     lr,
     regions_hanin,
     num_hanin_line_samples,
+    regions_humayan,
+    num_orthonormal_vectors_humayan,
 ):
     """
     Replaces save_files_final. Generates and saves plots for loss, accuracy, and sharpness.
@@ -73,7 +75,17 @@ def plot_training_results(
     else:
         axes[1, 1].axis("off")
 
-    axes[2, 0].axis("off")
+    if regions_freq > 0 and len(regions_humayan) > 0:
+        regions_steps = np.arange(0, len(train_loss), regions_freq)[
+            : len(regions_humayan)]
+        ax = axes[2, 0]
+        ax.plot(regions_steps, regions_humayan.cpu())
+        ax.set_xlabel("Step")
+        ax.set_ylabel("Humayan Regions")
+        ax.set_title("Humayan Count of linear regions")
+        ax.grid(True)
+    else:
+        axes[2, 0].axis("off")
 
     if regions_freq > 0 and len(regions_hanin) > 0:
         regions_steps = np.arange(0, len(train_loss), regions_freq)[

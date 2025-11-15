@@ -444,26 +444,11 @@ def num_linear_regions_humayan(
     while attempts < num_humayan_samples:
         attempts += 1
         idx = torch.randint(0, N, (1,)).item()
-        x = X[idx].to(device)
         x_flat = X_flat[idx]
-        breakpoint()
-        norm_x = float(x.norm().item())
-        if norm_x == 0.0:
-            # degenerate sample (zero vector) — skip or create a small random direction
-            # here we skip to get a meaningful direction
-            continue
-            #
-        # # scaling factor so that ||s * xp|| = r_max  => s = r_max / ||xp||
-        # s = r_max / norm_x
-        # # endpoints are -s*xp and +s*xp (opposite directions through origin)
-        # e1 = -s * x
-        # e2 = +s * x
-        # a = torch.linspace(0.0, 1.0, steps=num_hanin_line_samples,
-        #                    device=device).view(-1, 1, 1, 1)
-        # pts = (1 - a) * e1.unsqueeze(0) + a * e2.unsqueeze(0)
-        # lines_on_device.append(pts)
-        # points_on_device.append(pts)
-        #
+        hull_flat = x_flat.unsqueeze(1) + Q
+        hull = hull_flat.T.view(d1, d2, d3, p)
+        points_on_device.append(hull)
+
     if len(points_on_device) == 0:
         return 1.0
 
