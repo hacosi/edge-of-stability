@@ -18,6 +18,7 @@ from utilities import (
     get_gd_path,
     num_linear_regions_pier,
     num_linear_regions_hanin,
+    num_linear_regions_humayan,
 )
 from data import load_dataset, take_first, DATASETS
 from viz import plot_training_results
@@ -47,6 +48,7 @@ def main(
     num_samples_line: int = 10,
     num_hanin_point_samples: int = 10,
     num_hanin_line_samples: int = 10,
+    num_humayan_samples: int = 10,
 ):
     # directory = get_gd_directory(dataset, lr, arch_id, seed, opt, loss, beta)
     path = get_gd_path(dataset, lr, arch_id, seed, opt, loss, beta)
@@ -80,6 +82,7 @@ def main(
     regions_pier = torch.zeros(
         max_steps // regions_freq if regions_freq >= 0 else 0)
     regions_hanin = torch.zeros_like(regions_pier)
+    regions_humayan = torch.zeros_like(regions_pier)
 
     for step in range(0, max_steps):
         train_loss[step], train_acc[step] = compute_losses(
@@ -113,6 +116,9 @@ def main(
                 num_hanin_line_samples=num_hanin_line_samples,
             )
             print("Hanin Regions: ", regions_hanin[step // regions_freq])
+            regions_humayan[step // regions_freq] = num_humayan_samples(
+                model=network, X=X, num_humayan_samples=num_humayan_samples
+            )
 
         if iterate_freq != -1 and step % iterate_freq == 0:
             iterates[step // iterate_freq, :] = projectors.mv(
@@ -152,6 +158,8 @@ def main(
         lr,
         regions_hanin[: (step + 1) // regions_freq],
         num_hanin_line_samples,
+        num_humayan_samples[: (step + 1) // regions_freq],
+        num_humayan_samples,
     )
     # if save_model:
     #     torch.save(network.state_dict(), f"{directory}/snapshot_final")
@@ -246,6 +254,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_samples_line", type=int, default=10)
     parser.add_argument("--num_hanin_line_samples", type=int, default=10)
     parser.add_argument("--num_hanin_point_samples", type=int, default=10)
+    parser.add_argument("--num_humayan_samples", type=int, default=10)
 
     args = parser.parse_args()
     main(
@@ -272,4 +281,5 @@ if __name__ == "__main__":
         num_samples_pairs=args.num_samples_pairs,
         num_hanin_line_samples=args.num_hanin_line_samples,
         num_hanin_point_samples=args.num_hanin_point_samples,
+        num_humayan_samples=args.num_humayan_samples,
     )

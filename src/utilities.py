@@ -404,9 +404,61 @@ def num_linear_regions_hanin(
     return np.mean(counts)
 
 
-def num_linear_regions_humayan():
+def num_linear_regions_humayan(
+    model: nn.Module, X: torch.Tensor, device: Optional[str] = "cuda", num_humayan_samples: int = 100
+) -> float:
     # Sample point in the training or test set
     # Sample P orthonormal vectors in input space
     # Get convex hull neighborbood about the point
     # Take the vertices of convex hull and ?count linear regions on each?
-    pass
+    N = X.size(0)
+    device = device or (
+        next(model.parameters()).device if any(
+            p.requires_grad for p in model.parameters()) else torch.device("cpu")
+    )
+
+    # compute data envelope radius (L2)
+    with torch.no_grad():
+        norms = X.to(device).norm(dim=1)
+        r_max = float(norms.max().item()) if norms.numel() > 0 else 0.0
+        if r_max == 0.0:
+            r_max = 1.0
+
+    attempts = 0
+    points_on_device = []
+    # Sample orthonormal vectors
+    breakpoint()
+    d = X.shape[1]
+    A = torch.randn(d, N, device=device)
+    Q, _ = torch.linalg.qr(A)
+
+    while attempts < num_humayan_samples:
+        attempts += 1
+        idx = torch.randint(0, N, (1,)).item()
+        x = X[idx].to(device)
+        norm_x = float(x.norm().item())
+        if norm_x == 0.0:
+            # degenerate sample (zero vector) — skip or create a small random direction
+            # here we skip to get a meaningful direction
+            continue
+            #
+        # # scaling factor so that ||s * xp|| = r_max  => s = r_max / ||xp||
+        # s = r_max / norm_x
+        # # endpoints are -s*xp and +s*xp (opposite directions through origin)
+        # e1 = -s * x
+        # e2 = +s * x
+        # a = torch.linspace(0.0, 1.0, steps=num_hanin_line_samples,
+        #                    device=device).view(-1, 1, 1, 1)
+        # pts = (1 - a) * e1.unsqueeze(0) + a * e2.unsqueeze(0)
+        # lines_on_device.append(pts)
+        # points_on_device.append(pts)
+        #
+    if len(points_on_device) == 0:
+        return 1.0
+
+    counts = []
+    for batch in points_on_device:
+        counts.append(count_linear_regions(
+            model=model, batch=batch, device=device))
+
+    return np.mean(counts)
