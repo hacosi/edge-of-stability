@@ -405,7 +405,7 @@ def num_linear_regions_hanin(
 
 
 def num_linear_regions_humayan(
-    model: nn.Module, X: torch.Tensor, device: Optional[str] = "cuda", num_humayan_samples: int = 100
+    model: nn.Module, X: torch.Tensor, device: Optional[str] = "cuda", num_humayan_samples: int = 100, p: int = 10
 ) -> float:
     # Sample point in the training or test set
     # Sample P orthonormal vectors in input space
@@ -427,15 +427,26 @@ def num_linear_regions_humayan(
     attempts = 0
     points_on_device = []
     # Sample orthonormal vectors
-    breakpoint()
-    d = X.shape[1]
-    A = torch.randn(d, N, device=device)
-    Q, _ = torch.linalg.qr(A)
+    dtype = X.dtype
+    N, d1, d2, d3 = X.shape
+    D = d1 * d2 * d3
+    if p > D:
+        raise ValueError(f"p must be <= D (got p={p}, D={D})")
+    X_flat = X.reshape(N, D).to(device=device, dtype=dtype)
+    A = torch.randn((D, p), device=device, dtype=dtype)
+    Q, R = torch.linalg.qr(A)
+    diag_sign = torch.sign(torch.diagonal(R, dim1=-2, dim2=-1))
+    diag_sign[diag_sign == 0] = 1.0
+    Q = Q * diag_sign.unsqueeze(0)
+    scale = 1
+    Q = Q * scale
 
     while attempts < num_humayan_samples:
         attempts += 1
         idx = torch.randint(0, N, (1,)).item()
         x = X[idx].to(device)
+        x_flat = X_flat[idx]
+        breakpoint()
         norm_x = float(x.norm().item())
         if norm_x == 0.0:
             # degenerate sample (zero vector) — skip or create a small random direction
