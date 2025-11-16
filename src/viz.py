@@ -66,7 +66,9 @@ def plot_training_results(
         regions_steps = np.arange(0, len(train_loss), regions_freq)[
             : len(regions_pier)]
         ax = axes[1, 1]
-        ax.plot(regions_steps, regions_pier.cpu())
+        ax.plot(regions_steps, regions_pier[:, 0].cpu())
+        ax.fill_between(
+            regions_steps, regions_pier[:, 1].cpu(), regions_pier[:, 2].cpu())
         ax.set_ylim(0, num_samples_line)
         ax.set_xlabel("Step")
         ax.set_ylabel("Pier Regions")
@@ -79,7 +81,9 @@ def plot_training_results(
         regions_steps = np.arange(0, len(train_loss), regions_freq)[
             : len(regions_humayan)]
         ax = axes[2, 0]
-        ax.plot(regions_steps, regions_humayan.cpu())
+        ax.plot(regions_steps, regions_humayan[:, 0].cpu())
+        ax.fill_between(
+            regions_steps, regions_humayan[:, 1].cpu(), regions_humayan[:, 2].cpu())
         ax.set_xlabel("Step")
         ax.set_ylabel("Humayan Regions")
         ax.set_title("Humayan Count of linear regions")
@@ -91,7 +95,9 @@ def plot_training_results(
         regions_steps = np.arange(0, len(train_loss), regions_freq)[
             : len(regions_hanin)]
         ax = axes[2, 1]
-        ax.plot(regions_steps, regions_hanin.cpu())
+        ax.plot(regions_steps, regions_hanin[:, 0].cpu())
+        ax.fill_between(
+            regions_steps, regions_hanin[:, 1].cpu(), regions_hanin[:, 2].cpu())
         ax.set_ylim(0, num_hanin_line_samples)
         ax.set_xlabel("Step")
         ax.set_ylabel("Hanin Regions")

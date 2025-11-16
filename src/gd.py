@@ -81,7 +81,7 @@ def main(
         max_steps // iterate_freq if iterate_freq > 0 else 0, len(projectors))
     eigs = torch.zeros(max_steps // eig_freq if eig_freq >= 0 else 0, neigs)
     regions_pier = torch.zeros(
-        max_steps // regions_freq if regions_freq >= 0 else 0)
+        (max_steps // regions_freq if regions_freq >= 0 else 0), 3)
     regions_hanin = torch.zeros_like(regions_pier)
     regions_humayan = torch.zeros_like(regions_pier)
 
@@ -106,18 +106,18 @@ def main(
             X = train_dataset.tensors[0]
             y = train_dataset.tensors[1]
 
-            regions_pier[step // regions_freq] = num_linear_regions_pier(
+            regions_pier[step // regions_freq, :] = num_linear_regions_pier(
                 model=network, X=X, y=y, num_samples_pairs=num_samples_pairs, num_samples_line=num_samples_line
             )
             print("Pier Regions: ", regions_pier[step // regions_freq])
-            regions_hanin[step // regions_freq] = num_linear_regions_hanin(
+            regions_hanin[step // regions_freq, :] = num_linear_regions_hanin(
                 model=network,
                 X=X,
                 num_hanin_point_samples=num_hanin_point_samples,
                 num_hanin_line_samples=num_hanin_line_samples,
             )
             print("Hanin Regions: ", regions_hanin[step // regions_freq])
-            regions_humayan[step // regions_freq] = num_linear_regions_humayan(
+            regions_humayan[step // regions_freq, :] = num_linear_regions_humayan(
                 model=network, X=X, num_humayan_samples=num_humayan_samples, p=num_humayan_orthonormal_vectors
             )
             print("Humayan Regions: ", regions_humayan[step // regions_freq])

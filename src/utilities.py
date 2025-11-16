@@ -299,7 +299,7 @@ def num_linear_regions_pier(
     num_samples_pairs: int = 10,
     num_samples_line: int = 10,
     max_attempts: int = 1000,
-) -> float:
+) -> Tuple[float, float, float]:
     """
     Pier-style: sample pairs with different labels; for each pair sample num_samples_line
     points along the segment between them. Batch all line points, run forward once,
@@ -337,7 +337,9 @@ def num_linear_regions_pier(
         counts.append(count_linear_regions(
             model=model, batch=batch, device=device))
 
-    return np.mean(counts)
+    mean = np.mean(counts)
+    std = np.std(counts)
+    return mean, mean - std, mean + std
 
 
 def num_linear_regions_hanin(
@@ -401,7 +403,9 @@ def num_linear_regions_hanin(
         counts.append(count_linear_regions(
             model=model, batch=batch, device=device))
 
-    return np.mean(counts)
+    mean = np.mean(counts)
+    std = np.std(counts)
+    return mean, mean - std, mean + std
 
 
 def num_linear_regions_humayan(
@@ -457,4 +461,6 @@ def num_linear_regions_humayan(
         counts.append(count_linear_regions(
             model=model, batch=batch, device=device))
 
-    return np.mean(counts)
+    mean = np.mean(counts)
+    std = np.std(counts)
+    return mean, mean - std, mean + std
