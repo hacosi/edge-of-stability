@@ -97,7 +97,6 @@ def main(
     regions_humayan = torch.zeros_like(regions_pier)
 
     for step in range(0, max_steps):
-        print("epoch ", step)
         train_loss[step], train_acc[step] = compute_losses(
             network, [loss_fn, acc_fn], train_dataset, physical_batch_size
         )
@@ -125,6 +124,8 @@ def main(
                 print("eigenvalues: ", eigs[step // eig_freq, :])
 
         if regions_freq != -1 and step % regions_freq == 0:
+            print("epoch ", step)
+
             X = train_dataset.tensors[0]
             y = train_dataset.tensors[1]
 
