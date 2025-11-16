@@ -96,8 +96,8 @@ def main(
     regions_humayan = torch.zeros_like(regions_pier)
 
     for step in range(0, max_steps):
-        if step == 3000:
-            lr = 0.01
+        # if step == 3000:
+        #     lr = 0.01
         train_loss[step], train_acc[step] = compute_losses(
             network, [loss_fn, acc_fn], train_dataset, physical_batch_size
         )
