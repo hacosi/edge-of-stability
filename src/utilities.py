@@ -447,6 +447,7 @@ def num_linear_regions_humayan(
         idx = torch.randint(0, N, (1,)).item()
         x_flat = X_flat[idx]
         hull_flat = x_flat.unsqueeze(1) + Q
+        breakpoint()
         hull = hull_flat.T.view(d1, d2, d3, p)
         points_on_device.append(hull)
 
