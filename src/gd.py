@@ -165,6 +165,8 @@ def main(
         #     print("Hit goal")
         #     break
 
+        if physical_batch_size == -1:
+            physical_batch_size = len(train_dataset)
         optimizer.zero_grad()
         for X, y in iterate_dataset(train_dataset, physical_batch_size):
             loss = loss_fn(network(X.cuda()), y.cuda()) / len(train_dataset)
@@ -223,7 +225,7 @@ if __name__ == "__main__":
         "--physical_batch_size",
         type=int,
         help="the maximum number of examples that we try to fit on the GPU at once",
-        default=1000,
+        default=-1,
     )
     parser.add_argument(
         "--acc_goal",
