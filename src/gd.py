@@ -77,8 +77,8 @@ def main(
     if opt == "gd":
         optimizer = get_gd_optimizer(network.parameters(), opt, lr, beta)
     elif opt == "adam":
-        optimizer = Adam(network.parameters(), lr=lr, betas=(
-            beta1, beta2), epsilon=adam_epsilon)
+        optimizer = Adam(network.parameters(), lr=lr,
+                         betas=(beta1, beta2), eps=adam_epsilon)
     else:
         raise Exception
 
