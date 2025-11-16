@@ -5,6 +5,7 @@ from torch.nn.utils import parameters_to_vector
 from torch.optim import Adam
 
 import argparse
+from typing import Union
 
 from archs import load_architecture
 from utilities import (
@@ -55,6 +56,7 @@ def main(
     beta1: float = 0.9,
     beta2: float = 0.999,
     adam_epsilon: float = 1e-8,
+    title: str = "",
 ):
     # directory = get_gd_directory(dataset, lr, arch_id, seed, opt, loss, beta)
     path = get_gd_path(dataset, lr, arch_id, seed, opt, loss, beta, beta1, beta2, adam_epsilon)
@@ -170,8 +172,8 @@ def main(
             loss = loss_fn(network(X.cuda()), y.cuda()) / len(train_dataset)
             loss.backward()
         optimizer.step()
-
-    title = f"{dataset} | {arch_id} | {loss_str} | {opt} | lr {lr}"
+    if title == "":
+        title = f"{dataset} | {arch_id} | {loss_str} | {opt} | lr {lr}"
     plot_training_results(
         title,
         path,
@@ -278,6 +280,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_hanin_point_samples", type=int, default=10)
     parser.add_argument("--num_humayan_samples", type=int, default=10)
     parser.add_argument("--num_humayan_orthonormal_vectors", type=int, default=10)
+    parser.add_argument("--title", type=str, default="")
 
     args = parser.parse_args()
     main(
@@ -306,4 +309,5 @@ if __name__ == "__main__":
         num_hanin_point_samples=args.num_hanin_point_samples,
         num_humayan_samples=args.num_humayan_samples,
         num_humayan_orthonormal_vectors=args.num_humayan_orthonormal_vectors,
+        title=args.title,
     )
