@@ -396,7 +396,6 @@ def num_linear_regions_hanin(
     if len(lines_on_device) == 0:
         return 1.0
 
-    breakpoint()
     counts = []
     for batch in lines_on_device:
         counts.append(count_linear_regions(
@@ -447,14 +446,12 @@ def num_linear_regions_humayan(
         idx = torch.randint(0, N, (1,)).item()
         x_flat = X_flat[idx]
         hull_flat = x_flat.unsqueeze(1) + Q
-        breakpoint()
-        hull = hull_flat.T.view(d1, d2, d3, p)
+        hull = hull_flat.T.view(p, d1, d2, d3)
         points_on_device.append(hull)
 
     if len(points_on_device) == 0:
         return 1.0
 
-    breakpoint()
     counts = []
     for batch in points_on_device:
         counts.append(count_linear_regions(
