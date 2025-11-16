@@ -160,7 +160,7 @@ def main(
         lr,
         regions_hanin[: (step + 1) // regions_freq],
         num_hanin_line_samples,
-        num_humayan_samples[: (step + 1) // regions_freq],
+        regions_humayan[: (step + 1) // regions_freq],
         num_humayan_orthonormal_vectors,
     )
     # if save_model:
