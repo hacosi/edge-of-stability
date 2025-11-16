@@ -17,13 +17,26 @@ RESULTS_DIR = "./results"
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
 
-def get_gd_path(dataset: str, lr: float, arch_id: str, seed: int, opt: str, loss: str, beta: float = None):
+def get_gd_path(
+    dataset: str,
+    lr: float,
+    arch_id: str,
+    seed: int,
+    opt: str,
+    loss: str,
+    beta: float = None,
+    beta1: float = None,
+    beta2: float = None,
+    eps: float = None,
+):
     """Return the name for which the results png should be trained under."""
     path = f"{RESULTS_DIR}_{dataset}_{arch_id}_seed_{seed}_{loss}_{opt}"
     if opt == "gd":
         return f"{path}_lr_{lr}"
     elif opt == "polyak" or opt == "nesterov":
         return f"{path}_lr_{lr}_beta_{beta}"
+    elif opt == "adam":
+        return f"{path}_lr_{lr}_beta1_{beta1}_beta2_{beta2}_eps_{eps}"
 
 
 def get_gd_directory(dataset: str, lr: float, arch_id: str, seed: int, opt: str, loss: str, beta: float = None):

@@ -57,7 +57,8 @@ def main(
     adam_epsilon: float = 1e-8,
 ):
     # directory = get_gd_directory(dataset, lr, arch_id, seed, opt, loss, beta)
-    path = get_gd_path(dataset, lr, arch_id, seed, opt, loss, beta)
+    path = get_gd_path(dataset, lr, arch_id, seed, opt,
+                       loss, beta, beta1, beta2, adam_epsilon)
     # print(f"output directory: {directory}")
 
     # makedirs(directory, exist_ok=True)
