@@ -76,12 +76,10 @@ def main(
     torch.manual_seed(7)
     projectors = torch.randn(nproj, len(parameters_to_vector(network.parameters())))
 
-    if opt == "gd":
-        optimizer = get_gd_optimizer(network.parameters(), opt, lr, beta)
-    elif opt == "adam":
+    if opt == "adam":
         optimizer = Adam(network.parameters(), lr=lr, betas=(beta1, beta2), eps=adam_epsilon)
     else:
-        raise Exception
+        optimizer = get_gd_optimizer(network.parameters(), opt, lr, beta)
 
     train_loss, test_loss, train_acc, test_acc = (
         torch.zeros(max_steps),
@@ -103,7 +101,15 @@ def main(
         )
         test_loss[step], test_acc[step] = compute_losses(network, [loss_fn, acc_fn], test_dataset, physical_batch_size)
 
-        if opt == "gd":
+        if opt == "adam":
+            if step > 0 and eig_freq != -1 and step % eig_freq == 0:
+                nu = get_adam_nu(optimizer)
+                P = (1 - beta1**step) * ((nu / (1 - beta2**step)).sqrt() + adam_epsilon)
+                eigs[step // eig_freq, :] = get_hessian_eigenvalues(
+                    network, loss_fn, abridged_train, neigs=neigs, physical_batch_size=physical_batch_size, P=P
+                )
+                print("eigenvalues: ", eigs[step // eig_freq, :])
+        else:
             if eig_freq != -1 and step % eig_freq == 0:
                 eigs[step // eig_freq, :] = get_hessian_eigenvalues(
                     network,
@@ -111,14 +117,6 @@ def main(
                     abridged_train,
                     neigs=neigs,
                     physical_batch_size=physical_batch_size,
-                )
-                print("eigenvalues: ", eigs[step // eig_freq, :])
-        else:
-            if step > 0 and eig_freq != -1 and step % eig_freq == 0:
-                nu = get_adam_nu(optimizer)
-                P = (1 - beta1**step) * ((nu / (1 - beta2**step)).sqrt() + adam_epsilon)
-                eigs[step // eig_freq, :] = get_hessian_eigenvalues(
-                    network, loss_fn, abridged_train, neigs=neigs, physical_batch_size=physical_batch_size, P=P
                 )
                 print("eigenvalues: ", eigs[step // eig_freq, :])
 
