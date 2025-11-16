@@ -4,6 +4,7 @@ import os
 
 
 def plot_training_results(
+    title,
     path,
     train_loss,
     test_loss,
@@ -26,7 +27,7 @@ def plot_training_results(
 
     steps = np.arange(len(train_loss))
     fig, axes = plt.subplots(3, 2, figsize=(12, 8))
-    fig.suptitle("Training Summary", fontsize=16)
+    fig.suptitle(title, fontsize=16)
 
     # --- Plot train/test loss ---
     ax = axes[0, 0]

@@ -55,6 +55,15 @@ def get_gd_optimizer(parameters, opt: str, lr: float, momentum: float) -> Optimi
         return SGD(parameters, lr=lr, momentum=momentum, nesterov=True)
 
 
+def get_adam_nu(optimizer) -> torch.Tensor:
+    vec = []
+    for group in optimizer.param_groups:
+        for p in group["params"]:
+            state = optimizer.state[p]
+            vec.append(state["exp_avg_sq"].view(-1))
+    return torch.cat(vec)
+
+
 def save_files(directory: str, arrays: List[Tuple[str, torch.Tensor]]):
     """Save a bunch of tensors."""
     for arr_name, arr in arrays:

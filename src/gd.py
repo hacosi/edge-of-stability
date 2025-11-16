@@ -2,6 +2,7 @@ from os import makedirs
 
 import torch
 from torch.nn.utils import parameters_to_vector
+from torch.optim import Adam
 
 import argparse
 
@@ -19,6 +20,7 @@ from utilities import (
     num_linear_regions_pier,
     num_linear_regions_hanin,
     num_linear_regions_humayan,
+    get_adam_nu,
 )
 from data import load_dataset, take_first, DATASETS
 from viz import plot_training_results
@@ -50,6 +52,9 @@ def main(
     num_hanin_line_samples: int = 10,
     num_humayan_samples: int = 10,
     num_humayan_orthonormal_vectors: int = 10,
+    beta1: float = 0.9,
+    beta2: float = 0.999,
+    adam_epsilon: float = 1e-8,
 ):
     # directory = get_gd_directory(dataset, lr, arch_id, seed, opt, loss, beta)
     path = get_gd_path(dataset, lr, arch_id, seed, opt, loss, beta)
@@ -69,7 +74,13 @@ def main(
     projectors = torch.randn(nproj, len(
         parameters_to_vector(network.parameters())))
 
-    optimizer = get_gd_optimizer(network.parameters(), opt, lr, beta)
+    if opt == "gd":
+        optimizer = get_gd_optimizer(network.parameters(), opt, lr, beta)
+    elif opt == "adam":
+        optimizer = Adam(network.parameters(), lr=lr, betas=(
+            beta1, beta2), epsilon=adam_epsilon)
+    else:
+        raise Exception
 
     train_loss, test_loss, train_acc, test_acc = (
         torch.zeros(max_steps),
@@ -93,15 +104,25 @@ def main(
         test_loss[step], test_acc[step] = compute_losses(
             network, [loss_fn, acc_fn], test_dataset, physical_batch_size)
 
-        if eig_freq != -1 and step % eig_freq == 0:
-            eigs[step // eig_freq, :] = get_hessian_eigenvalues(
-                network,
-                loss_fn,
-                abridged_train,
-                neigs=neigs,
-                physical_batch_size=physical_batch_size,
-            )
-            print("eigenvalues: ", eigs[step // eig_freq, :])
+        if opt == "gd":
+            if eig_freq != -1 and step % eig_freq == 0:
+                eigs[step // eig_freq, :] = get_hessian_eigenvalues(
+                    network,
+                    loss_fn,
+                    abridged_train,
+                    neigs=neigs,
+                    physical_batch_size=physical_batch_size,
+                )
+                print("eigenvalues: ", eigs[step // eig_freq, :])
+        else:
+            if step > 0 and eig_freq != -1 and step % eig_freq == 0:
+                nu = get_adam_nu(optimizer)
+                P = (1 - beta1**step) * \
+                    ((nu / (1 - beta2**step)).sqrt() + adam_epsilon)
+                eigs[step // eig_freq, :] = get_hessian_eigenvalues(
+                    network, loss_fn, abridged_train, neigs=neigs, physical_batch_size=physical_batch_size, P=P
+                )
+                print("eigenvalues: ", eigs[step // eig_freq, :])
 
         if regions_freq != -1 and step % regions_freq == 0:
             X = train_dataset.tensors[0]
@@ -153,7 +174,9 @@ def main(
             loss.backward()
         optimizer.step()
 
+    title = f"{dataset} | {arch_id} | {loss} | {opt} | lr {lr}"
     plot_training_results(
+        title,
         path,
         train_loss[: step + 1],
         test_loss[: step + 1],
@@ -189,7 +212,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--opt",
         type=str,
-        choices=["gd", "polyak", "nesterov"],
+        choices=["gd", "polyak", "nesterov", "adam"],
         help="which optimization algorithm to use",
         default="gd",
     )
