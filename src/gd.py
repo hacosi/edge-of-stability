@@ -66,6 +66,7 @@ def main(
     train_dataset, test_dataset = load_dataset(dataset, loss)
     abridged_train = take_first(train_dataset, abridged_size)
 
+    loss_str = loss
     loss_fn, acc_fn = get_loss_and_acc(loss)
 
     torch.manual_seed(seed)
@@ -176,7 +177,7 @@ def main(
             loss.backward()
         optimizer.step()
 
-    title = f"{dataset} | {arch_id} | {loss} | {opt} | lr {lr}"
+    title = f"{dataset} | {arch_id} | {loss_str} | {opt} | lr {lr}"
     plot_training_results(
         title,
         path,
