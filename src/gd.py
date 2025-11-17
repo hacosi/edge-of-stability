@@ -106,9 +106,9 @@ def main(
         physical_batch_size = len(train_dataset)
 
     for step in range(0, max_steps):
-        # if step == 3000:
-        #     lr = 0.01
-        #     optimizer = get_gd_optimizer(network.parameters(), opt, lr, beta)
+        if step == 2500:
+            lr = 0.01
+            optimizer = get_gd_optimizer(network.parameters(), opt, lr, beta)
 
         train_loss[step], train_acc[step] = compute_losses(
             network, [loss_fn, acc_fn], train_dataset, physical_batch_size
