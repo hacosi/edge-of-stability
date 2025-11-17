@@ -2,7 +2,7 @@ from os import makedirs
 
 import torch
 from torch.nn.utils import parameters_to_vector
-from torch.optim import Adam
+from torch.optim import Adam, lr_scheduler
 
 import argparse
 from typing import Union
@@ -57,6 +57,7 @@ def main(
     beta2: float = 0.999,
     adam_epsilon: float = 1e-8,
     title: str = "",
+    lr_schedule_gamma: float = 1,
 ):
     # directory = get_gd_directory(dataset, lr, arch_id, seed, opt, loss, beta)
     path = get_gd_path(dataset, lr, arch_id, seed, opt,
@@ -84,6 +85,9 @@ def main(
     else:
         optimizer = get_gd_optimizer(network.parameters(), opt, lr, beta)
 
+    scheduler = lr_scheduler.StepLR(
+        optimizer, step_size=1000, gamma=lr_schedule_gamma)
+
     train_loss, test_loss, train_acc, test_acc = (
         torch.zeros(max_steps),
         torch.zeros(max_steps),
@@ -102,9 +106,9 @@ def main(
         physical_batch_size = len(train_dataset)
 
     for step in range(0, max_steps):
-        if step == 3000:
-            lr = 0.01
-            optimizer = get_gd_optimizer(network.parameters(), opt, lr, beta)
+        # if step == 3000:
+        #     lr = 0.01
+        #     optimizer = get_gd_optimizer(network.parameters(), opt, lr, beta)
 
         train_loss[step], train_acc[step] = compute_losses(
             network, [loss_fn, acc_fn], train_dataset, physical_batch_size
@@ -182,7 +186,8 @@ def main(
         for X, y in iterate_dataset(train_dataset, physical_batch_size):
             loss = loss_fn(network(X.cuda()), y.cuda()) / len(train_dataset)
             loss.backward()
-        optimizer.step()
+            optimizer.step()
+        scheduler.step()
     if title == "":
         title = f"{dataset} | {arch_id} | {loss_str} | {opt} | lr {lr}"
     plot_training_results(
