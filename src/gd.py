@@ -305,6 +305,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_humayan_orthonormal_vectors",
                         type=int, default=10)
     parser.add_argument("--title", type=str, default="")
+    parser.add_argument("--lr_schedule_gamma", type=float, default=1)
 
     args = parser.parse_args()
     main(
@@ -334,4 +335,5 @@ if __name__ == "__main__":
         num_humayan_samples=args.num_humayan_samples,
         num_humayan_orthonormal_vectors=args.num_humayan_orthonormal_vectors,
         title=args.title,
+        lr_schedule_gamma=args.lr_schedule_gamma,
     )
