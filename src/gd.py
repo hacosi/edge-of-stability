@@ -58,6 +58,7 @@ def main(
     adam_epsilon: float = 1e-8,
     title: str = "",
     lr_schedule_gamma: float = 1,
+    lr_schedule_steps: int = 1000,
 ):
     # directory = get_gd_directory(dataset, lr, arch_id, seed, opt, loss, beta)
     path = get_gd_path(dataset, lr, arch_id, seed, opt,
@@ -207,6 +208,8 @@ def main(
         num_hanin_line_samples,
         regions_humayan[: (step + 1) // regions_freq],
         num_humayan_orthonormal_vectors,
+        lr_schedule_gamma,
+        lr_schedule_steps,
     )
     # if save_model:
     #     torch.save(network.state_dict(), f"{directory}/snapshot_final")
@@ -306,6 +309,7 @@ if __name__ == "__main__":
                         type=int, default=10)
     parser.add_argument("--title", type=str, default="")
     parser.add_argument("--lr_schedule_gamma", type=float, default=1)
+    parser.add_argument("--lr_schedule_steps", type=int, default=1000)
 
     args = parser.parse_args()
     main(
@@ -336,4 +340,5 @@ if __name__ == "__main__":
         num_humayan_orthonormal_vectors=args.num_humayan_orthonormal_vectors,
         title=args.title,
         lr_schedule_gamma=args.lr_schedule_gamma,
+        lr_schedule_steps=args.lr_schedule_steps,
     )

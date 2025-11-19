@@ -20,6 +20,8 @@ def plot_training_results(
     num_hanin_line_samples,
     regions_humayan,
     num_orthonormal_vectors_humayan,
+    lr_schedule_gamma,
+    lr_schedule_steps,
 ):
     """
     Replaces save_files_final. Generates and saves plots for loss, accuracy, and sharpness.
@@ -29,7 +31,6 @@ def plot_training_results(
     fig, axes = plt.subplots(3, 2, figsize=(12, 8))
     fig.suptitle(title, fontsize=16)
 
-    # --- Plot train/test loss ---
     ax = axes[0, 0]
     ax.plot(steps, train_loss.cpu(), label="Train Loss")
     ax.plot(steps, test_loss.cpu(), label="Test Loss", linestyle="--")
@@ -38,7 +39,6 @@ def plot_training_results(
     ax.legend()
     ax.grid(True)
 
-    # --- Plot train/test accuracy ---
     ax = axes[0, 1]
     ax.plot(steps, train_acc.cpu(), label="Train Accuracy")
     ax.plot(steps, test_acc.cpu(), label="Test Accuracy", linestyle="--")
@@ -47,21 +47,27 @@ def plot_training_results(
     ax.legend()
     ax.grid(True)
 
-    # --- Plot sharpness (top eigenvalues) ---
     if eig_freq > 0 and len(eigs) > 0:
         eig_steps = np.arange(0, len(train_loss), eig_freq)[: len(eigs)]
         ax = axes[1, 0]
         ax.plot(eig_steps, eigs.cpu())
-        ax.axhline(y=2 / lr, color="r", linestyle="--", linewidth=1)
+        if lr_schedule_gamma != 1:
+            for i in range(0, len(train_loss), step=lr_schedule_steps):
+                ax.axhline(
+                    y=2 / (lr * lr_schedule_gamma**i),
+                    linestyle="--",
+                    linewidth=1,
+                    title=f"lr={lr * lr_schedule_gamma**i:.3f}",
+                )
+        else:
+            ax.axhline(y=2 / lr, color="r", linestyle="--",
+                       linewidth=1, title=f"2/lr")
         ax.set_xlabel("Step")
         ax.set_ylabel("Eigenvalues (Sharpness)")
         ax.set_title("Top Hessian Eigenvalues")
         ax.grid(True)
     else:
         axes[1, 0].axis("off")
-
-    # # --- Hide the last empty subplot or add summary text ---
-    # axes[1, 1].axis("off")
 
     if regions_freq > 0 and len(regions_pier) > 0:
         regions_steps = np.arange(0, len(train_loss), regions_freq)[
