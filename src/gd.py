@@ -85,9 +85,9 @@ def main(
     else:
         optimizer = get_gd_optimizer(network.parameters(), opt, lr, beta)
 
-    # scheduler = lr_scheduler.StepLR(
-    #     optimizer, step_size=1000, gamma=lr_schedule_gamma)
-    #
+    scheduler = lr_scheduler.StepLR(
+        optimizer, step_size=1000, gamma=lr_schedule_gamma)
+
     train_loss, test_loss, train_acc, test_acc = (
         torch.zeros(max_steps),
         torch.zeros(max_steps),
@@ -106,10 +106,10 @@ def main(
         physical_batch_size = len(train_dataset)
 
     for step in range(0, max_steps):
-        if step == 2500:
-            lr = 0.01
-            optimizer = get_gd_optimizer(network.parameters(), opt, lr, beta)
-
+        # if step == 2500:
+        #     lr = 0.01
+        #     optimizer = get_gd_optimizer(network.parameters(), opt, lr, beta)
+        #
         train_loss[step], train_acc[step] = compute_losses(
             network, [loss_fn, acc_fn], train_dataset, physical_batch_size
         )
@@ -187,7 +187,7 @@ def main(
             loss = loss_fn(network(X.cuda()), y.cuda()) / len(train_dataset)
             loss.backward()
             optimizer.step()
-        # scheduler.step()
+        scheduler.step()
     if title == "":
         title = f"{dataset} | {arch_id} | {loss_str} | {opt} | lr {lr}"
     plot_training_results(
