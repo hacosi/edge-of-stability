@@ -64,8 +64,9 @@ def plot_training_results(
             if opt == "adam":
                 ax.axhline(y=38 / lr, color="r", linestyle="--",
                            linewidth=1, label="38/lr")
-            ax.axhline(y=2 / lr, color="r", linestyle="--",
-                       linewidth=1, label="2/lr")
+            else:
+                ax.axhline(y=2 / lr, color="r", linestyle="--",
+                           linewidth=1, label="2/lr")
         ax.set_xlabel("Step")
         ax.set_ylabel("Eigenvalues (Sharpness)")
         ax.set_title("Top Hessian Eigenvalues")
