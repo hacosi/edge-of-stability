@@ -22,6 +22,7 @@ def plot_training_results(
     num_orthonormal_vectors_humayan,
     lr_schedule_gamma,
     lr_schedule_steps,
+    opt,
 ):
     """
     Replaces save_files_final. Generates and saves plots for loss, accuracy, and sharpness.
@@ -60,6 +61,9 @@ def plot_training_results(
                     label=f"lr={lr * lr_schedule_gamma**i:.3f}",
                 )
         else:
+            if opt == "adam":
+                ax.axhline(y=38 / lr, color="r", linestyle="--",
+                           linewidth=1, label="38/lr")
             ax.axhline(y=2 / lr, color="r", linestyle="--",
                        linewidth=1, label="2/lr")
         ax.set_xlabel("Step")
