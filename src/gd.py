@@ -85,10 +85,11 @@ def main(
         optimizer = Adam(network.parameters(), lr=lr,
                          betas=(beta1, beta2), eps=adam_epsilon)
     else:
+        print("Opt initialized with lr: ", lr)
         optimizer = get_gd_optimizer(network.parameters(), opt, lr, beta)
 
-    scheduler = lr_scheduler.StepLR(
-        optimizer, step_size=1000, gamma=lr_schedule_gamma)
+    # scheduler = lr_scheduler.StepLR(
+    #     optimizer, step_size=1000, gamma=lr_schedule_gamma)
 
     train_loss, test_loss, train_acc, test_acc = (
         torch.zeros(max_steps),
@@ -189,7 +190,7 @@ def main(
             loss = loss_fn(network(X.cuda()), y.cuda()) / len(train_dataset)
             loss.backward()
             optimizer.step()
-        scheduler.step()
+        # scheduler.step()
     if title == "":
         title = f"{dataset} | {arch_id} | {loss_str} | {opt} | lr {lr}"
     plot_training_results(
