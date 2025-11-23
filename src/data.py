@@ -17,6 +17,7 @@ DATASETS = [
     "chebyshev-4-20",
     "chebyshev-5-20",
     "linear-50-50",
+    "mnist",
 ]
 
 

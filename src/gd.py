@@ -22,6 +22,7 @@ from utilities import (
     num_linear_regions_hanin,
     num_linear_regions_humayan,
     get_adam_nu,
+    get_gradients,
 )
 from data import load_dataset, take_first, DATASETS
 from viz import plot_training_results
@@ -166,6 +167,12 @@ def main(
                 )
             )
             print("Humayan Regions: ", regions_humayan[step // regions_freq])
+
+        # Gradients histogram
+        gradients = get_gradients(model=network)
+        breakpoint()
+
+        # 2-dim visualization
 
         if iterate_freq != -1 and step % iterate_freq == 0:
             iterates[step // iterate_freq, :] = projectors.mv(

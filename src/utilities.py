@@ -486,3 +486,11 @@ def num_linear_regions_humayan(
     mean = np.mean(counts)
     std = np.std(counts)
     return mean, mean - std, mean + std
+
+
+def get_gradients(model):
+    weights = []
+    for param in model.parameters():
+        weights.append(param.flatten())
+    weights = torch.cat(weights, dim=1)
+    return weights
