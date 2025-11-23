@@ -4,21 +4,14 @@ import os
 
 
 def plot_training_results(
+    history,
     title,
     path,
-    train_loss,
-    test_loss,
-    train_acc,
-    test_acc,
-    eigs,
     eig_freq,
-    regions_pier,
     regions_freq,
     num_samples_line,
     lr,
-    regions_hanin,
     num_hanin_line_samples,
-    regions_humayan,
     num_orthonormal_vectors_humayan,
     lr_schedule_gamma,
     lr_schedule_steps,
@@ -27,6 +20,15 @@ def plot_training_results(
     """
     Replaces save_files_final. Generates and saves plots for loss, accuracy, and sharpness.
     """
+
+    train_loss = history["train_loss"]
+    test_loss = history["test_loss"]
+    train_acc = history["train_acc"]
+    test_acc = history["test_acc"]
+    eigs = history["eigs"]
+    regions_pier = history["regions_pier"]
+    regions_hanin = history["regions_hanin"]
+    regions_humayan = history["regions_humayan"]
 
     steps = np.arange(len(train_loss))
     fig, axes = plt.subplots(3, 2, figsize=(12, 8))

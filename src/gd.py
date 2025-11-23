@@ -1,3 +1,5 @@
+import os
+import json
 from os import makedirs
 
 import torch
@@ -109,36 +111,48 @@ def main(
     if physical_batch_size == -1:
         physical_batch_size = len(train_dataset)
 
+    history = {
+        "train_loss": torch.zeros(max_steps),
+        "test_loss": torch.zeros(max_steps),
+        "train_acc": torch.zeros(max_steps),
+        "test_acc": torch.zeros(max_steps),
+        "eigs": torch.zeros(max_steps // eig_freq if eig_freq >= 0 else 0, neigs),
+        "regions_pier": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        "regions_hanin": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        "regions_humayan": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+    }
+
     for step in range(0, max_steps):
         # if step == 2500:
         #     lr = 0.01
         #     optimizer = get_gd_optimizer(network.parameters(), opt, lr, beta)
         #
-        train_loss[step], train_acc[step] = compute_losses(
+        history["train_loss"][step], history["train_acc"][step] = compute_losses(
             network, [loss_fn, acc_fn], train_dataset, physical_batch_size
         )
-        test_loss[step], test_acc[step] = compute_losses(
-            network, [loss_fn, acc_fn], test_dataset, physical_batch_size)
+        history["test_loss"][step], history["test_acc"][step] = compute_losses(
+            network, [loss_fn, acc_fn], test_dataset, physical_batch_size
+        )
 
         if opt == "adam":
             if step > 0 and eig_freq != -1 and step % eig_freq == 0:
                 nu = get_adam_nu(optimizer)
                 P = (1 - beta1**step) * \
                     ((nu / (1 - beta2**step)).sqrt() + adam_epsilon)
-                eigs[step // eig_freq, :] = get_hessian_eigenvalues(
+                history["eigs"][step // eig_freq, :] = get_hessian_eigenvalues(
                     network, loss_fn, abridged_train, neigs=neigs, physical_batch_size=physical_batch_size, P=P
                 )
-                print("eigenvalues: ", eigs[step // eig_freq, :])
+                print("eigenvalues: ", history["eigs"][step // eig_freq, :])
         else:
             if eig_freq != -1 and step % eig_freq == 0:
-                eigs[step // eig_freq, :] = get_hessian_eigenvalues(
+                history["eigs"][step // eig_freq, :] = get_hessian_eigenvalues(
                     network,
                     loss_fn,
                     abridged_train,
                     neigs=neigs,
                     physical_batch_size=physical_batch_size,
                 )
-                print("eigenvalues: ", eigs[step // eig_freq, :])
+                print("eigenvalues: ", history["eigs"][step // eig_freq, :])
 
         if regions_freq != -1 and step % regions_freq == 0:
             print("epoch ", step)
@@ -146,13 +160,14 @@ def main(
             X = train_dataset.tensors[0]
             y = train_dataset.tensors[1]
 
-            regions_pier[step // regions_freq, :] = torch.tensor(
+            history["regions_pier"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_pier(
                     model=network, X=X, y=y, num_samples_pairs=num_samples_pairs, num_samples_line=num_samples_line
                 )
             )
-            print("Pier Regions: ", regions_pier[step // regions_freq])
-            regions_hanin[step // regions_freq, :] = torch.tensor(
+            print("Pier Regions: ",
+                  history["regions_pier"][step // regions_freq])
+            history["regions_hanin"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_hanin(
                     model=network,
                     X=X,
@@ -160,13 +175,15 @@ def main(
                     num_hanin_line_samples=num_hanin_line_samples,
                 )
             )
-            print("Hanin Regions: ", regions_hanin[step // regions_freq])
-            regions_humayan[step // regions_freq, :] = torch.tensor(
+            print("Hanin Regions: ",
+                  history["regions_hanin"][step // regions_freq])
+            history["regions_humayan"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_humayan(
                     model=network, X=X, num_humayan_samples=num_humayan_samples, p=num_humayan_orthonormal_vectors
                 )
             )
-            print("Humayan Regions: ", regions_humayan[step // regions_freq])
+            print("Humayan Regions: ",
+                  history["regions_humayan"][step // regions_freq])
 
         # Gradients histogram
         # gradients = get_gradients(model=network)
@@ -200,22 +217,20 @@ def main(
         # scheduler.step()
     if title == "":
         title = f"{dataset} | {arch_id} | {loss_str} | {opt} | lr {lr}"
+
+    results_dir = "results"
+    os.makedirs(results_dir, exist_ok=True)
+    with open(os.path.join(results_dir, f"{path}.json"), "w") as f:
+        json.dump(history, f, indent=2)
     plot_training_results(
+        history,
         title,
         path,
-        train_loss[: step + 1],
-        test_loss[: step + 1],
-        train_acc[: step + 1],
-        test_acc[: step + 1],
-        eigs[: (step + 1) // eig_freq],
         eig_freq,
-        regions_pier[: (step + 1) // regions_freq],
         regions_freq,
         num_samples_line,
         lr,
-        regions_hanin[: (step + 1) // regions_freq],
         num_hanin_line_samples,
-        regions_humayan[: (step + 1) // regions_freq],
         num_humayan_orthonormal_vectors,
         lr_schedule_gamma,
         lr_schedule_steps,
