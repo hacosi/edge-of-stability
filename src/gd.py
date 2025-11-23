@@ -212,6 +212,7 @@ def main(
         num_humayan_orthonormal_vectors,
         lr_schedule_gamma,
         lr_schedule_steps,
+        opt,
     )
     # if save_model:
     #     torch.save(network.state_dict(), f"{directory}/snapshot_final")
