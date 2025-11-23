@@ -491,6 +491,7 @@ def num_linear_regions_humayan(
 def get_gradients(model):
     weights = []
     for param in model.parameters():
+        breakpoint()
         weights.append(param.flatten())
     weights = torch.cat(weights, dim=1)
     return weights
