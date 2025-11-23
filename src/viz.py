@@ -69,6 +69,7 @@ def plot_training_results(
                            linewidth=1, label="2/lr")
         ax.set_xlabel("Step")
         ax.set_ylabel("Eigenvalues (Sharpness)")
+        ax.legend()
         ax.set_title("Top Hessian Eigenvalues")
         ax.grid(True)
     else:
