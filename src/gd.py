@@ -169,8 +169,8 @@ def main(
             print("Humayan Regions: ", regions_humayan[step // regions_freq])
 
         # Gradients histogram
-        gradients = get_gradients(model=network)
-        breakpoint()
+        # gradients = get_gradients(model=network)
+        # breakpoint()
 
         # 2-dim visualization
 
