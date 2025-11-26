@@ -507,4 +507,5 @@ def tensor_to_jsonable(obj):
     return obj  # leave primitives unchanged
 
 
-def get_grid_sampled_plane_regions(model,  X, y, grid_samples):
+def get_grid_sampled_plane_regions(model, X, y, grid_samples):
+    pass
