@@ -180,18 +180,21 @@ def make_live_animation(
         ax_hanin.set_title("Hanin Regions")
         ax_humayan.set_title("Humayan Regions")
 
-        x = np.arange(1, i + 2)
-        x_eigs = np.arange(1, (i + 1) // eig_freq + 1)
-        x_regions = np.arange(1, (i + 1) // eig_freq + 1)
-        ax_loss.plot(x, history["train_loss"][: i + 1], label="train")
-        ax_loss.plot(x, history["test_loss"][: i + 1], label="test")
+        x = np.arange(1, i + 1)
+        x_eigs = np.arange(1, i + 1)
+        x_regions = np.arange(1, i + 1)
+        ax_loss.plot(x, history["train_loss"]
+                     [: (i + 1) * eig_freq], label="train")
+        ax_loss.plot(x, history["test_loss"]
+                     [: (i + 1) * eig_freq], label="test")
         ax_loss.legend()
 
-        ax_loss.plot(x, history["train_acc"][: i + 1], label="train")
-        ax_loss.plot(x, history["test_acc"][: i + 1], label="test")
-        ax_loss.legend()
+        ax_acc.plot(x, history["train_acc"]
+                    [: (i + 1) * eig_freq], label="train")
+        ax_acc.plot(x, history["test_acc"][: (i + 1) * eig_freq], label="test")
+        ax_acc.legend()
 
-        ax_sharp.plot(x_eigs, history["eigs"][: (i + 1) // eig_freq])
+        ax_sharp.plot(x_eigs, history["eigs"][: i + 1])
         ax_sharp.axhline(y=2 / lr, color="red", linestyle="--", label="2/eta")
         if opt == "adam":
             ax_sharp.axhline(y=38 / lr, color="r",
@@ -202,34 +205,31 @@ def make_live_animation(
         ax_sharp.legend()
         ax_sharp.grid(True)
 
-        ax_pier.plot(x_regions, history["regions_pier"]
-                     [: (i + 1) // regions_freq, 0])
+        ax_pier.plot(x_regions, history["regions_pier"][: i + 1, 0])
         ax_pier.fill_between(
             x_regions,
-            history["regions_pier"][: (i + 1) // regions_freq, 1],
-            history["regions_pier"][: (i + 1) // regions_freq, 2],
+            history["regions_pier"][: i + 1, 1],
+            history["regions_pier"][: i + 1, 2],
             alpha=0.3,
         )
         ax_pier.set_ylim(0, num_samples_line)
         ax_pier.grid(True)
 
-        ax_hanin.plot(
-            x_regions, history["regions_hanin"][: (i + 1) // regions_freq, 0])
+        ax_hanin.plot(x_regions, history["regions_hanin"][: i + 1, 0])
         ax_hanin.fill_between(
             x_regions,
-            history["regions_hanin"][: (i + 1) // regions_freq, 1],
-            history["regions_hanin"][: (i + 1) // regions_freq, 2],
+            history["regions_hanin"][: i + 1, 1],
+            history["regions_hanin"][: i + 1, 2],
             alpha=0.3,
         )
         ax_hanin.set_ylim(0, num_hanin_line_samples)
         ax_hanin.grid(True)
 
-        ax_humayan.plot(
-            x_regions, history["regions_humayan"][: (i + 1) // regions_freq, 0])
+        ax_humayan.plot(x_regions, history["regions_humayan"][: i + 1, 0])
         ax_humayan.fill_between(
             x_regions,
-            history["regions_humayan"][: (i + 1) // regions_freq, 1],
-            history["regions_humayan"][: (i + 1) // regions_freq, 2],
+            history["regions_humayan"][: i + 1, 1],
+            history["regions_humayan"][: i + 1, 2],
             alpha=0.3,
         )
         ax_humayan.set_ylim(0, num_humayan_orthonormal_vectors)
@@ -238,7 +238,7 @@ def make_live_animation(
         return []
 
     anim = animation.FuncAnimation(
-        fig, update, frames=epochs, init_func=init, blit=False)
+        fig, update, frames=epochs / eig_freq, init_func=init, blit=False)
     anim.save(path + ".mp4", fps=4, dpi=150)
-    print("Saved animation to", path)
+    print("Saved animation to", path + ".mp4")
     plt.close(fig)
