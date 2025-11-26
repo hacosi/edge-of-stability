@@ -141,13 +141,14 @@ def make_live_animation(
     path,
     fps=4,
 ):
-    fig, axes = plt.subplots(3, 2, figsize=(12, 10))
+    fig, axes = plt.subplots(3, 3, figsize=(12, 10))
     ax_loss = axes[0, 0]
     ax_acc = axes[0, 1]
     ax_sharp = axes[1, 0]
     ax_pier = axes[1, 1]
     ax_hanin = axes[2, 1]
     ax_humayan = axes[2, 0]
+    ax_gradients = axes[0, 2]
     ax_loss.set_title("Loss")
     ax_loss.set_xlabel("epoch")
     ax_acc.set_title("Accuracy")
@@ -160,6 +161,8 @@ def make_live_animation(
     ax_hanin.set_xlabel("epoch")
     ax_humayan.set_title("Humayan Regions")
     ax_humayan.set_xlabel("epoch")
+    ax_gradients.set_title("Gradients")
+    ax_gradients.set_xlabel("epoch")
 
     epochs = len(history["train_loss"])
 
@@ -234,6 +237,9 @@ def make_live_animation(
         )
         ax_humayan.set_ylim(0, num_humayan_orthonormal_vectors)
         ax_humayan.grid(True)
+
+        ax_gradients.hist1d(history["gradients"][i])
+
         fig.suptitle(f"Epoch {i + 1}/{epochs}")
         return []
 
