@@ -117,7 +117,7 @@ def main(
         "test_loss": torch.zeros(max_steps),
         "train_acc": torch.zeros(max_steps),
         "test_acc": torch.zeros(max_steps),
-        "eigs": torch.zeros(max_steps // eig_freq if eig_freq >= 0 else 0, neigs),
+        "eigs": torch.zeros(max_steps // eig_freq if eig_freq >= 0 else 0),
         "regions_pier": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         "regions_hanin": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         "regions_humayan": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
@@ -140,20 +140,20 @@ def main(
                 nu = get_adam_nu(optimizer)
                 P = (1 - beta1**step) * \
                     ((nu / (1 - beta2**step)).sqrt() + adam_epsilon)
-                history["eigs"][step // eig_freq, :] = get_hessian_eigenvalues(
+                history["eigs"][step // eig_freq] = get_hessian_eigenvalues(
                     network, loss_fn, abridged_train, neigs=neigs, physical_batch_size=physical_batch_size, P=P
                 )
                 print("eigenvalues: ", history["eigs"][step // eig_freq, :])
         else:
             if eig_freq != -1 and step % eig_freq == 0:
-                history["eigs"][step // eig_freq, :] = get_hessian_eigenvalues(
+                history["eigs"][step // eig_freq] = get_hessian_eigenvalues(
                     network,
                     loss_fn,
                     abridged_train,
                     neigs=neigs,
                     physical_batch_size=physical_batch_size,
                 )
-                print("eigenvalues: ", history["eigs"][step // eig_freq, :])
+                print("eigenvalues: ", history["eigs"][step // eig_freq])
 
         if regions_freq != -1 and step % regions_freq == 0:
             print("epoch ", step)
