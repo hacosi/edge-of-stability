@@ -26,6 +26,7 @@ from utilities import (
     get_adam_nu,
     get_gradients,
     tensor_to_jsonable,
+    get_grid_sampled_plane_regions,
 )
 from data import load_dataset, take_first, DATASETS
 from viz import plot_training_results, make_live_animation
@@ -64,6 +65,7 @@ def main(
     lr_schedule_gamma: float = 1,
     lr_schedule_steps: int = 1000,
     make_video: int = False,
+    grid_samples: int = 200,
 ):
     # directory = get_gd_directory(dataset, lr, arch_id, seed, opt, loss, beta)
     # path = get_gd_path(dataset, lr, arch_id, seed, opt,
@@ -127,6 +129,12 @@ def main(
                 (max_steps // regions_freq if regions_freq >= 0 else 0),
                 sum(len(param.flatten()) for param in network.parameters()),
             )
+            if make_video
+            else None
+        ),
+        "grid_sampled_plane_regions": (
+            torch.zeros(
+                (max_steps // regions_freq if regions_freq >= 0 else 0), grid_samples**2)
             if make_video
             else None
         ),
@@ -197,9 +205,10 @@ def main(
             if make_video:
                 history["gradients"][step // regions_freq,
                                      :] = get_gradients(model=network)
+                history["grid_sampled_plane_regions"][step // regions_freq, :] = get_grid_sampled_plane_regions(
+                    model=network, X=X, y=y
+                )
 
-        # 2-dim visualization
-        #
         # if iterate_freq != -1 and step % iterate_freq == 0:
         #     iterates[step // iterate_freq, :] = projectors.mv(
         #         parameters_to_vector(network.parameters()).cpu().detach())

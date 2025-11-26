@@ -93,3 +93,5 @@ def load_dataset(dataset_name: str, loss: str) -> (TensorDataset, TensorDataset)
         return make_chebyshev_dataset(k=3, n=20)
     elif dataset_name == "linear-50-50":
         return make_linear_dataset(n=50, d=50)
+    elif dataset_name == "mnist":
+        train, test = load_mnist(loss)

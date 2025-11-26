@@ -505,3 +505,6 @@ def tensor_to_jsonable(obj):
     if isinstance(obj, list):
         return [tensor_to_jsonable(x) for x in obj]
     return obj  # leave primitives unchanged
+
+
+def get_grid_sampled_plane_regions(model,  X, y, grid_samples):
