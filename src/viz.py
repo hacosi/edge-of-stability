@@ -240,7 +240,7 @@ def make_live_animation(
     anim = animation.FuncAnimation(
         fig, update, frames=epochs, init_func=init, blit=False)
     try:
-        anim.save(path, fps=4, dpi=150)
+        anim.save(path + ".mp4", fps=4, dpi=150)
         print("Saved animation to", path)
     except Exception as e:
         print(

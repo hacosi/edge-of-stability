@@ -221,6 +221,7 @@ def main(
 
     results_dir = "results"
     os.makedirs(results_dir, exist_ok=True)
+    print("Generating plot of results...")
     plot_training_results(
         history,
         title,
@@ -236,6 +237,7 @@ def main(
         opt,
     )
 
+    print("Generating moving animation of results...")
     make_live_animation(
         history=history,
         opt=opt,
@@ -247,6 +249,7 @@ def main(
         num_humayan_orthonormal_vectors=num_humayan_orthonormal_vectors,
         path=path,
     )
+    print("Dumping results...")
     with open(os.path.join(results_dir, f"{path}.json"), "w") as f:
         history_json_serializable = tensor_to_jsonable(history)
         json.dump(history_json_serializable, f, indent=2)
