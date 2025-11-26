@@ -82,8 +82,8 @@ def main(
     network = load_architecture(arch_id, dataset).cuda()
 
     torch.manual_seed(7)
-    projectors = torch.randn(nproj, len(
-        parameters_to_vector(network.parameters())))
+    # projectors = torch.randn(nproj, len(
+    #     parameters_to_vector(network.parameters())))
 
     if opt == "adam":
         optimizer = Adam(network.parameters(), lr=lr,
@@ -101,8 +101,8 @@ def main(
         torch.zeros(max_steps),
         torch.zeros(max_steps),
     )
-    iterates = torch.zeros(
-        max_steps // iterate_freq if iterate_freq > 0 else 0, len(projectors))
+    # iterates = torch.zeros(
+    #     max_steps // iterate_freq if iterate_freq > 0 else 0, len(projectors))
     eigs = torch.zeros(max_steps // eig_freq if eig_freq >= 0 else 0, neigs)
     regions_pier = torch.zeros(
         (max_steps // regions_freq if regions_freq >= 0 else 0), 3)
@@ -121,6 +121,10 @@ def main(
         "regions_pier": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         "regions_hanin": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         "regions_humayan": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        "gradients": torch.zeros(
+            (max_steps // regions_freq if regions_freq >= 0 else 0),
+            sum(len(param.flatten()) for param in network.parameters()),
+        ),
     }
 
     for step in range(0, max_steps):
@@ -185,15 +189,15 @@ def main(
             )
             print("Humayan Regions: ",
                   history["regions_humayan"][step // regions_freq])
-            history["gradients"][step //
-                                 regions_freq] = get_gradients(model=network)
+            history["gradients"][step // regions_freq,
+                                 :] = get_gradients(model=network)
 
         # 2-dim visualization
-
-        if iterate_freq != -1 and step % iterate_freq == 0:
-            iterates[step // iterate_freq, :] = projectors.mv(
-                parameters_to_vector(network.parameters()).cpu().detach())
-
+        #
+        # if iterate_freq != -1 and step % iterate_freq == 0:
+        #     iterates[step // iterate_freq, :] = projectors.mv(
+        #         parameters_to_vector(network.parameters()).cpu().detach())
+        #
         # if save_freq != -1 and step % save_freq == 0:
         #     save_files(directory, [("eigs", eigs[:step // eig_freq]), ("iterates", iterates[:step // iterate_freq]),
         #                            ("train_loss", train_loss[:step]), ("test_loss", test_loss[:step]),

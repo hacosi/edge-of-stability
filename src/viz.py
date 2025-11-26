@@ -163,6 +163,8 @@ def make_live_animation(
     ax_humayan.set_xlabel("epoch")
     ax_gradients.set_title("Gradients")
     ax_gradients.set_xlabel("epoch")
+    axes[1, 2].axis("off")
+    axes[2, 2].axis("off")
 
     epochs = len(history["train_loss"])
 
@@ -176,12 +178,14 @@ def make_live_animation(
         ax_pier.clear()
         ax_hanin.clear()
         ax_humayan.clear()
+        ax_gradients.clear()
         ax_loss.set_title("Loss")
         ax_acc.set_title("Accuracy")
         ax_sharp.set_title("Sharpness")
         ax_pier.set_title("Pier Regions")
         ax_hanin.set_title("Hanin Regions")
         ax_humayan.set_title("Humayan Regions")
+        ax_gradients.set_title("Gradients")
 
         x = np.arange(1, (i + 1) * eig_freq + 1)
         x_eigs = np.arange(1, i + 1)
@@ -238,7 +242,8 @@ def make_live_animation(
         ax_humayan.set_ylim(0, num_humayan_orthonormal_vectors)
         ax_humayan.grid(True)
 
-        ax_gradients.hist1d(history["gradients"][i])
+        ax_gradients.hist(history["gradients"][i], bins=100, edgecolor="black")
+        ax_gradients.grid(True)
 
         fig.suptitle(f"Epoch {i + 1}/{epochs}")
         return []
