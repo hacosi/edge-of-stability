@@ -3,6 +3,7 @@ import numpy as np
 from typing import Tuple
 from torch.utils.data import TensorDataset
 from cifar import load_cifar
+from mnist import load_mnist
 from synthetic import make_chebyshev_dataset, make_linear_dataset
 # from wikitext import load_wikitext_2
 
@@ -34,6 +35,8 @@ def num_input_channels(dataset_name: str) -> int:
         return 3
     elif dataset_name == "fashion":
         return 1
+    elif dataset_name.startswith("mnist"):
+        return 1
 
 
 def image_size(dataset_name: str) -> int:
@@ -41,10 +44,12 @@ def image_size(dataset_name: str) -> int:
         return 32
     elif dataset_name == "fashion":
         return 28
+    elif dataset_name.startswith("mnist"):
+        return 28
 
 
 def num_classes(dataset_name: str) -> int:
-    if dataset_name.startswith("cifar10"):
+    if dataset_name.startswith("cifar10") or dataset_name.startswith("mnist"):
         return 10
     elif dataset_name == "fashion":
         return 10
