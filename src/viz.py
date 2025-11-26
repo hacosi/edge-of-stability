@@ -181,8 +181,8 @@ def make_live_animation(
         ax_humayan.set_title("Humayan Regions")
 
         x = np.arange(1, i + 2)
-        x_eigs = np.arange(1, (i + 2) // eig_freq + 1)
-        x_regions = np.arange(1, (i + 2) // eig_freq + 1)
+        x_eigs = np.arange(1, (i + 1) // eig_freq + 1)
+        x_regions = np.arange(1, (i + 1) // eig_freq + 1)
         ax_loss.plot(x, history["train_loss"][: i + 1], label="train")
         ax_loss.plot(x, history["test_loss"][: i + 1], label="test")
         ax_loss.legend()
