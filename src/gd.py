@@ -27,7 +27,7 @@ from utilities import (
     get_gradients,
 )
 from data import load_dataset, take_first, DATASETS
-from viz import plot_training_results
+from viz import plot_training_results, make_live_animation
 
 
 def main(
@@ -235,6 +235,18 @@ def main(
         lr_schedule_gamma,
         lr_schedule_steps,
         opt,
+    )
+
+    make_live_animation(
+        history=history,
+        opt=opt,
+        lr=lr,
+        eig_freq=eig_freq,
+        regions_freq=regions_freq,
+        num_samples_line=num_samples_line,
+        num_hanin_line_samples=num_hanin_line_samples,
+        num_humayan_orthonormal_vectors=num_humayan_orthonormal_vectors,
+        path=path,
     )
     # if save_model:
     #     torch.save(network.state_dict(), f"{directory}/snapshot_final")

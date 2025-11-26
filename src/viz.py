@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib import animation
 import numpy as np
 import os
 
@@ -126,3 +127,127 @@ def plot_training_results(
     plt.savefig(save_path)
     plt.close(fig)
     print(f"Saved training plots to {save_path}")
+
+
+def make_live_animation(
+    history,
+    opt,
+    lr,
+    eig_freq,
+    regions_freq,
+    num_samples_line,
+    num_hanin_line_samples,
+    num_humayan_orthonormal_vectors,
+    path,
+    fps=4,
+):
+    fig, axes = plt.subplots(3, 2, figsize=(12, 10))
+    ax_loss = axes[0, 0]
+    ax_acc = axes[0, 1]
+    ax_sharp = axes[1, 0]
+    ax_pier = axes[1, 1]
+    ax_hanin = axes[2, 1]
+    ax_humayan = axes[2, 0]
+    ax_loss.set_title("Loss")
+    ax_loss.set_xlabel("epoch")
+    ax_acc.set_title("Accuracy")
+    ax_acc.set_xlabel("epoch")
+    ax_sharp.set_title("Sharpness")
+    ax_sharp.set_xlabel("epoch")
+    ax_pier.set_title("Pier Regions")
+    ax_pier.set_xlabel("epoch")
+    ax_hanin.set_title("Hanin Regions")
+    ax_hanin.set_xlabel("epoch")
+    ax_humayan.set_title("Humayan Regions")
+    ax_humayan.set_xlabel("epoch")
+
+    epochs = len(history["train_loss"])
+
+    def init():
+        return []
+
+    def update(i):
+        ax_loss.clear()
+        ax_acc.clear()
+        ax_sharp.clear()
+        ax_pier.clear()
+        ax_hanin.clear()
+        ax_humayan.clear()
+        ax_loss.set_title("Loss")
+        ax_acc.set_title("Accuracy")
+        ax_sharp.set_title("Sharpness")
+        ax_pier.set_title("Pier Regions")
+        ax_hanin.set_title("Hanin Regions")
+        ax_humayan.set_title("Humayan Regions")
+
+        x = np.arange(1, i + 2)
+        x_eigs = np.arange(1, (i + 2) // eig_freq)
+        x_regions = np.arange(1, (i + 2) // eig_freq)
+        ax_loss.plot(x, history["train_loss"][: i + 1], label="train")
+        ax_loss.plot(x, history["test_loss"][: i + 1], label="test")
+        ax_loss.legend()
+
+        ax_loss.plot(x, history["train_acc"][: i + 1], label="train")
+        ax_loss.plot(x, history["test_acc"][: i + 1], label="test")
+        ax_loss.legend()
+
+        ax_sharp.plot(x_eigs, history["eigs"][: (i + 1) // eig_freq])
+        ax_sharp.axhline(y=2 / lr, color="red", linestyle="--", label="2/eta")
+        if opt == "adam":
+            ax_sharp.axhline(y=38 / lr, color="r",
+                             linestyle="--", linewidth=1, label="38/lr")
+        else:
+            ax_sharp.axhline(y=2 / lr, color="r",
+                             linestyle="--", linewidth=1, label="2/lr")
+        ax_sharp.legend()
+        ax_sharp.grid(True)
+
+        ax_pier.plot(x_regions, history["regions_pier"]
+                     [: (i + 1) // regions_freq, 0])
+        ax_pier.fill_between(
+            x_regions,
+            history["regions_pier"][: (i + 1) // regions_freq, 1],
+            history["regions_pier"][: (i + 1) // regions_freq, 2],
+            alpha=0.3,
+        )
+        ax_pier.set_ylim(0, num_samples_line)
+        ax_pier.grid(True)
+
+        ax_hanin.plot(
+            x_regions, history["regions_hanin"][: (i + 1) // regions_freq, 0])
+        ax_hanin.fill_between(
+            x_regions,
+            history["regions_hanin"][: (i + 1) // regions_freq, 1],
+            history["regions_hanin"][: (i + 1) // regions_freq, 2],
+            alpha=0.3,
+        )
+        ax_hanin.set_ylim(0, num_hanin_line_samples)
+        ax_hanin.grid(True)
+
+        ax_humayan.plot(
+            x_regions, history["regions_humayan"][: (i + 1) // regions_freq, 0])
+        ax_humayan.fill_between(
+            x_regions,
+            history["regions_humayan"][: (i + 1) // regions_freq, 1],
+            history["regions_humayan"][: (i + 1) // regions_freq, 2],
+            alpha=0.3,
+        )
+        ax_humayan.set_ylim(0, num_humayan_orthonormal_vectors)
+        ax_humayan.grid(True)
+        fig.suptitle(f"Epoch {i + 1}/{epochs}")
+        return []
+
+    anim = animation.FuncAnimation(
+        fig, update, frames=epochs, init_func=init, blit=False)
+    try:
+        anim.save(path, fps=4, dpi=150)
+        print("Saved animation to", path)
+    except Exception as e:
+        print(
+            "Could not save mp4 (ffmpeg may be missing). Saving gif instead... Error:",
+            e,
+        )
+        outgif = path.rsplit(".", 1)[0] + ".gif"
+        anim.save(outgif, writer="pillow", fps=4)
+        print("Saved animation to", outgif)
+    plt.close(fig)
