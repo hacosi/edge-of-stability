@@ -180,7 +180,7 @@ def make_live_animation(
         ax_hanin.set_title("Hanin Regions")
         ax_humayan.set_title("Humayan Regions")
 
-        x = np.arange(1, i + 1)
+        x = np.arange(1, (i + 1) * eig_freq)
         x_eigs = np.arange(1, i + 1)
         x_regions = np.arange(1, i + 1)
         breakpoint()
