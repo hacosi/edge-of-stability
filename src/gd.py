@@ -25,6 +25,7 @@ from utilities import (
     num_linear_regions_humayan,
     get_adam_nu,
     get_gradients,
+    tensor_to_jsonable,
 )
 from data import load_dataset, take_first, DATASETS
 from viz import plot_training_results, make_live_animation
@@ -220,8 +221,6 @@ def main(
 
     results_dir = "results"
     os.makedirs(results_dir, exist_ok=True)
-    with open(os.path.join(results_dir, f"{path}.json"), "w") as f:
-        json.dump(history, f, indent=2)
     plot_training_results(
         history,
         title,
@@ -248,6 +247,10 @@ def main(
         num_humayan_orthonormal_vectors=num_humayan_orthonormal_vectors,
         path=path,
     )
+    with open(os.path.join(results_dir, f"{path}.json"), "w") as f:
+        history_json_serializable = tensor_to_jsonable(history)
+        json.dump(history_json_serializable, f, indent=2)
+
     # if save_model:
     #     torch.save(network.state_dict(), f"{directory}/snapshot_final")
 
