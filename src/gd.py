@@ -249,6 +249,7 @@ def main(
         num_humayan_orthonormal_vectors=num_humayan_orthonormal_vectors,
         path=path,
     )
+
     print("Dumping results...")
     with open(os.path.join(results_dir, f"{path}.json"), "w") as f:
         history_json_serializable = tensor_to_jsonable(history)

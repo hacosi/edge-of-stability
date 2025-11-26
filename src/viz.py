@@ -238,8 +238,8 @@ def make_live_animation(
         fig.suptitle(f"Epoch {i + 1}/{epochs}")
         return []
 
-    anim = animation.FuncAnimation(
-        fig, update, frames=epochs / eig_freq, init_func=init, blit=False)
+    anim = animation.FuncAnimation(fig, update, frames=int(
+        epochs / eig_freq), init_func=init, blit=False)
     anim.save(path + ".mp4", fps=4, dpi=150)
     print("Saved animation to", path + ".mp4")
     plt.close(fig)
