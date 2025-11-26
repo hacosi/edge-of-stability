@@ -225,7 +225,7 @@ def make_live_animation(
         ax_hanin.set_ylim(0, num_hanin_line_samples)
         ax_hanin.grid(True)
 
-        ax_humayan.plot(x_regions, history["regions_humayan"][: i + 1, 0])
+        ax_humayan.plot(x_regions, history["regions_humayan"][:i, 0])
         ax_humayan.fill_between(
             x_regions,
             history["regions_humayan"][:i, 1],
