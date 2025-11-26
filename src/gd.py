@@ -218,8 +218,8 @@ def main(
         #     print("Hit goal")
         #     break
 
-        optimizer.zero_grad()
         for X, y in iterate_dataset(train_dataset, physical_batch_size):
+            optimizer.zero_grad()
             loss = loss_fn(network(X.cuda()), y.cuda()) / len(train_dataset)
             loss.backward()
             optimizer.step()
