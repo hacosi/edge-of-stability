@@ -195,7 +195,7 @@ def make_live_animation(
         ax_acc.legend()
 
         breakpoint()
-        ax_sharp.plot(x_eigs, history["eigs"][: i + 1])
+        ax_sharp.plot(x_eigs, history["eigs"][:i])
         ax_sharp.axhline(y=2 / lr, color="red", linestyle="--", label="2/eta")
         if opt == "adam":
             ax_sharp.axhline(y=38 / lr, color="r",
@@ -206,21 +206,21 @@ def make_live_animation(
         ax_sharp.legend()
         ax_sharp.grid(True)
 
-        ax_pier.plot(x_regions, history["regions_pier"][: i + 1, 0])
+        ax_pier.plot(x_regions, history["regions_pier"][:i, 0])
         ax_pier.fill_between(
             x_regions,
-            history["regions_pier"][: i + 1, 1],
-            history["regions_pier"][: i + 1, 2],
+            history["regions_pier"][:i, 1],
+            history["regions_pier"][:i, 2],
             alpha=0.3,
         )
         ax_pier.set_ylim(0, num_samples_line)
         ax_pier.grid(True)
 
-        ax_hanin.plot(x_regions, history["regions_hanin"][: i + 1, 0])
+        ax_hanin.plot(x_regions, history["regions_hanin"][:i, 0])
         ax_hanin.fill_between(
             x_regions,
-            history["regions_hanin"][: i + 1, 1],
-            history["regions_hanin"][: i + 1, 2],
+            history["regions_hanin"][:i, 1],
+            history["regions_hanin"][:i, 2],
             alpha=0.3,
         )
         ax_hanin.set_ylim(0, num_hanin_line_samples)
@@ -229,8 +229,8 @@ def make_live_animation(
         ax_humayan.plot(x_regions, history["regions_humayan"][: i + 1, 0])
         ax_humayan.fill_between(
             x_regions,
-            history["regions_humayan"][: i + 1, 1],
-            history["regions_humayan"][: i + 1, 2],
+            history["regions_humayan"][:i, 1],
+            history["regions_humayan"][:i, 2],
             alpha=0.3,
         )
         ax_humayan.set_ylim(0, num_humayan_orthonormal_vectors)
