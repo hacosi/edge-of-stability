@@ -494,3 +494,14 @@ def get_gradients(model):
         weights.append(param.flatten())
     weights = torch.cat(weights)
     return weights
+
+
+def tensor_to_jsonable(obj):
+    """Convert tensors (and nested tensors) to Python lists."""
+    if isinstance(obj, torch.Tensor):
+        return obj.detach().cpu().tolist()
+    if isinstance(obj, dict):
+        return {k: tensor_to_jsonable(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [tensor_to_jsonable(x) for x in obj]
+    return obj  # leave primitives unchanged
