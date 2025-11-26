@@ -191,7 +191,8 @@ def make_live_animation(
         ax_loss.plot(x, history["test_acc"][: i + 1], label="test")
         ax_loss.legend()
 
-        breakpoint()
+        if i + 1 >= eig_freq:
+            breakpoint()
         ax_sharp.plot(x_eigs, history["eigs"][: (i + 1) // eig_freq])
         ax_sharp.axhline(y=2 / lr, color="red", linestyle="--", label="2/eta")
         if opt == "adam":
