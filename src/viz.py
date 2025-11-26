@@ -239,15 +239,6 @@ def make_live_animation(
 
     anim = animation.FuncAnimation(
         fig, update, frames=epochs, init_func=init, blit=False)
-    try:
-        anim.save(path + ".mp4", fps=4, dpi=150)
-        print("Saved animation to", path)
-    except Exception as e:
-        print(
-            "Could not save mp4 (ffmpeg may be missing). Saving gif instead... Error:",
-            e,
-        )
-        outgif = path.rsplit(".", 1)[0] + ".gif"
-        anim.save(outgif, writer="pillow", fps=4)
-        print("Saved animation to", outgif)
+    anim.save(path + ".mp4", fps=4, dpi=150)
+    print("Saved animation to", path)
     plt.close(fig)
