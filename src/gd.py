@@ -63,6 +63,7 @@ def main(
     title: str = "",
     lr_schedule_gamma: float = 1,
     lr_schedule_steps: int = 1000,
+    make_video: int = False,
 ):
     # directory = get_gd_directory(dataset, lr, arch_id, seed, opt, loss, beta)
     # path = get_gd_path(dataset, lr, arch_id, seed, opt,
@@ -121,9 +122,13 @@ def main(
         "regions_pier": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         "regions_hanin": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         "regions_humayan": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        "gradients": torch.zeros(
-            (max_steps // regions_freq if regions_freq >= 0 else 0),
-            sum(len(param.flatten()) for param in network.parameters()),
+        "gradients": (
+            torch.zeros(
+                (max_steps // regions_freq if regions_freq >= 0 else 0),
+                sum(len(param.flatten()) for param in network.parameters()),
+            )
+            if make_video
+            else None
         ),
     }
 
@@ -189,8 +194,9 @@ def main(
             )
             print("Humayan Regions: ",
                   history["regions_humayan"][step // regions_freq])
-            history["gradients"][step // regions_freq,
-                                 :] = get_gradients(model=network)
+            if make_video:
+                history["gradients"][step // regions_freq,
+                                     :] = get_gradients(model=network)
 
         # 2-dim visualization
         #
@@ -239,18 +245,19 @@ def main(
         opt,
     )
 
-    print("Generating moving animation of results...")
-    make_live_animation(
-        history=history,
-        opt=opt,
-        lr=lr,
-        eig_freq=eig_freq,
-        regions_freq=regions_freq,
-        num_samples_line=num_samples_line,
-        num_hanin_line_samples=num_hanin_line_samples,
-        num_humayan_orthonormal_vectors=num_humayan_orthonormal_vectors,
-        path=path,
-    )
+    if make_video:
+        print("Generating moving animation of results...")
+        make_live_animation(
+            history=history,
+            opt=opt,
+            lr=lr,
+            eig_freq=eig_freq,
+            regions_freq=regions_freq,
+            num_samples_line=num_samples_line,
+            num_hanin_line_samples=num_hanin_line_samples,
+            num_humayan_orthonormal_vectors=num_humayan_orthonormal_vectors,
+            path=path,
+        )
     #
     # print("Dumping results...")
     # with open("path.json", "w") as f:

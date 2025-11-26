@@ -493,7 +493,7 @@ def get_gradients(model):
     for param in model.parameters():
         weights.append(param.flatten())
     weights = torch.cat(weights)
-    return weights.detach().cpu().numpy()
+    return weights.detach().cpu()
 
 
 def tensor_to_jsonable(obj):
