@@ -476,6 +476,7 @@ def num_linear_regions_humayan(
         attempts += 1
         idx = torch.randint(0, N, (1,)).item()
         x_flat = X_flat[idx]
+        print(x_flat.shape, Q.shape)
         hull_flat = torch.cat(
             [x_flat.unsqueeze(1) + Q, x_flat.unsqueeze(1) - Q], dim=0)
         hull = hull_flat.T.view(2 * p, d1, d2, d3)
@@ -494,9 +495,10 @@ def num_linear_regions_humayan(
     return mean, mean - std, mean + std
 
 
-def num_linear_regions_pertub(X, model, device, D, k):
+def num_linear_regions_perturb(X, model, device, D, k):
     # Sample D points from X
-    #
+    # Produce k random small pertubations, gather points then compute linear regions
+
     pass
 
 
