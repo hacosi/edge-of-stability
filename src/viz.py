@@ -97,7 +97,13 @@ def plot_training_results(
         regions_steps = np.arange(0, len(train_loss), regions_freq)[
             : len(regions_humayan)]
         ax = axes[2, 0]
-        ax.plot(regions_steps, regions_humayan[:, 0].cpu())
+        ax.plot(regions_steps, regions_humayan[:, 0].cpu(), label="scale 1")
+        ax.plot(regions_steps, history["regions_humayan_scale_0.01"][:, 0].cpu(
+        ), label="scale 0.01")
+        ax.plot(regions_steps, history["regions_humayan_scale_0.1"][:, 0].cpu(
+        ), label="scale 0.1")
+        ax.plot(regions_steps,
+                history["regions_humayan_scale_10"][:, 0].cpu(), label="scale 10")
         ax.fill_between(regions_steps, regions_humayan[:, 1].cpu(
         ), regions_humayan[:, 2].cpu(), alpha=0.3)
         ax.set_xlabel("Step")

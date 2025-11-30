@@ -124,6 +124,9 @@ def main(
         "regions_pier": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         "regions_hanin": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         "regions_humayan": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        "regions_humayan_scale_0.1": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        "regions_humayan_scale_0.01": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        "regions_humayan_scale_10": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         "gradients": (
             torch.zeros(
                 (max_steps // regions_freq if regions_freq >= 0 else 0),
@@ -198,6 +201,33 @@ def main(
             history["regions_humayan"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_humayan(
                     model=network, X=X, num_humayan_samples=num_humayan_samples, p=num_humayan_orthonormal_vectors
+                )
+            )
+            history["regions_humayan_scale_0.01"][step // regions_freq, :] = torch.tensor(
+                num_linear_regions_humayan(
+                    model=network,
+                    X=X,
+                    num_humayan_samples=num_humayan_samples,
+                    p=num_humayan_orthonormal_vectors,
+                    scale=0.01,
+                )
+            )
+            history["regions_humayan_scale_0.1"][step // regions_freq, :] = torch.tensor(
+                num_linear_regions_humayan(
+                    model=network,
+                    X=X,
+                    num_humayan_samples=num_humayan_samples,
+                    p=num_humayan_orthonormal_vectors,
+                    scale=0.1,
+                )
+            )
+            history["regions_humayan_scale_10"][step // regions_freq, :] = torch.tensor(
+                num_linear_regions_humayan(
+                    model=network,
+                    X=X,
+                    num_humayan_samples=num_humayan_samples,
+                    p=num_humayan_orthonormal_vectors,
+                    scale=10,
                 )
             )
             print("Humayan Regions: ",
