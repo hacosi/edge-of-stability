@@ -232,12 +232,12 @@ def main(
             )
             print("Humayan Regions: ",
                   history["regions_humayan"][step // regions_freq])
-            if make_video:
-                history["gradients"][step // regions_freq,
-                                     :] = get_gradients(model=network)
-                history["grid_sampled_plane_regions"][step // regions_freq, :] = get_grid_sampled_plane_regions(
-                    model=network, X=X, y=y
-                )
+            # if make_video:
+            #     history["gradients"][step // regions_freq,
+            #                          :] = get_gradients(model=network)
+            #     history["grid_sampled_plane_regions"][step // regions_freq, :] = get_grid_sampled_plane_regions(
+            #         model=network, X=X, y=y
+            #     )
 
         # if iterate_freq != -1 and step % iterate_freq == 0:
         #     iterates[step // iterate_freq, :] = projectors.mv(
