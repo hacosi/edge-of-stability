@@ -225,7 +225,7 @@ def main(
             )
             print("Humayan Regions: ",
                   history["regions_humayan"][step // regions_freq])
-            history["regions_perturb"]
+            # history["regions_perturb"][step // regions_freq, :] =
             # if make_video:
             #     history["gradients"][step // regions_freq,
             #                          :] = get_gradients(model=network)
