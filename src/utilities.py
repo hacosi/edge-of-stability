@@ -493,11 +493,22 @@ def num_linear_regions_humayan(
     return mean, mean - std, mean + std
 
 
-def num_linear_regions_perturb(X, model, device, D, k):
+def num_linear_regions_perturb(
+    X,
+    model,
+    D,
+    k,
+    device: Optional[str] = "cuda",
+):
     # Sample D points from X
     # Produce k random small pertubations, gather points then compute linear regions
     print(X.shape)
     N = X.size(0)
+    device = device or (
+        next(model.parameters()).device if any(
+            w.requires_grad for w in model.parameters()) else torch.device("cpu")
+    )
+
     for _ in range(D):
         idx = torch.randint(0, N, (1,)).item()
         x = X[idx].to(device)
