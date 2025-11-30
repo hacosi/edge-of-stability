@@ -127,20 +127,20 @@ def main(
         "regions_humayan_scale_0.1": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         "regions_humayan_scale_0.01": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         "regions_humayan_scale_10": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        "gradients": (
-            torch.zeros(
-                (max_steps // regions_freq if regions_freq >= 0 else 0),
-                sum(len(param.flatten()) for param in network.parameters()),
-            )
-            if make_video
-            else None
-        ),
-        "grid_sampled_plane_regions": (
-            torch.zeros(
-                (max_steps // regions_freq if regions_freq >= 0 else 0), grid_samples**2)
-            if make_video
-            else None
-        ),
+        # "gradients": (
+        #     torch.zeros(
+        #         (max_steps // regions_freq if regions_freq >= 0 else 0),
+        #         sum(len(param.flatten()) for param in network.parameters()),
+        #     )
+        #     if make_video
+        #     else None
+        # ),
+        # "grid_sampled_plane_regions": (
+        #     torch.zeros(
+        #         (max_steps // regions_freq if regions_freq >= 0 else 0), grid_samples**2)
+        #     if make_video
+        #     else None
+        # ),
     }
 
     for step in range(0, max_steps):
@@ -284,19 +284,19 @@ def main(
         opt,
     )
 
-    if make_video:
-        print("Generating moving animation of results...")
-        make_live_animation(
-            history=history,
-            opt=opt,
-            lr=lr,
-            eig_freq=eig_freq,
-            regions_freq=regions_freq,
-            num_samples_line=num_samples_line,
-            num_hanin_line_samples=num_hanin_line_samples,
-            num_humayan_orthonormal_vectors=num_humayan_orthonormal_vectors,
-            path=path,
-        )
+    # if make_video:
+    #     print("Generating moving animation of results...")
+    #     make_live_animation(
+    #         history=history,
+    #         opt=opt,
+    #         lr=lr,
+    #         eig_freq=eig_freq,
+    #         regions_freq=regions_freq,
+    #         num_samples_line=num_samples_line,
+    #         num_hanin_line_samples=num_hanin_line_samples,
+    #         num_humayan_orthonormal_vectors=num_humayan_orthonormal_vectors,
+    #         path=path,
+    #     )
     #
     # print("Dumping results...")
     # with open("path.json", "w") as f:
