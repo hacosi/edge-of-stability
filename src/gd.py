@@ -236,9 +236,9 @@ def main(
             )
             print("Humayan Regions: ",
                   history["regions_humayan"][step // regions_freq])
-            history["regions_perturb"][step // regions_freq, :] = num_linear_regions_perturb(
-                X=X, model=network, D=10, k=5
-            )
+            # history["regions_perturb"][step // regions_freq, :] = num_linear_regions_perturb(
+            #     X=X, model=network, D=10, k=5
+            # )
 
             # if make_video:
             #     history["gradients"][step // regions_freq,

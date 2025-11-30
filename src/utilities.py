@@ -521,6 +521,22 @@ def num_linear_regions_perturb(
     pass
 
 
+def num_linear_regions_directional_probe(X, model, D, t):
+    pass
+
+
+def num_linear_regions_low_dim_grid_search(X, model, d, eps):
+    pass
+
+
+def num_linear_regions_PCA(X, model):
+    pass
+
+
+def generator_sampling(X, model):
+    pass
+
+
 def get_gradients(model):
     weights = []
     for param in model.parameters():
