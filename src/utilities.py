@@ -476,7 +476,7 @@ def num_linear_regions_humayan(
         attempts += 1
         idx = torch.randint(0, N, (1,)).item()
         x_flat = X_flat[idx]
-        print(x_flat.shape, Q.shape)
+        print(x_flat.unsqueeze(1).shape, Q.shape)
         hull_flat = torch.cat(
             [x_flat.unsqueeze(1) + Q, x_flat.unsqueeze(1) - Q], dim=0)
         hull = hull_flat.T.view(2 * p, d1, d2, d3)
@@ -498,6 +498,15 @@ def num_linear_regions_humayan(
 def num_linear_regions_perturb(X, model, device, D, k):
     # Sample D points from X
     # Produce k random small pertubations, gather points then compute linear regions
+    N = X.size(0)
+    for _ in range(D):
+        idx = torch.randint(0, N, (1,)).item()
+        x = X[idx].to(device)
+        norm_x = float(x.norm().item())
+        if norm_x == 0.0:
+            # degenerate sample (zero vector) — skip or create a small random direction
+            # here we skip to get a meaningful direction
+            continue
 
     pass
 
