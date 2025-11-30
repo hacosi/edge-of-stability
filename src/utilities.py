@@ -496,6 +496,7 @@ def num_linear_regions_humayan(
 def num_linear_regions_perturb(X, model, device, D, k):
     # Sample D points from X
     # Produce k random small pertubations, gather points then compute linear regions
+    print(X.shape)
     N = X.size(0)
     for _ in range(D):
         idx = torch.randint(0, N, (1,)).item()
