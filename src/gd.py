@@ -27,6 +27,7 @@ from utilities import (
     get_gradients,
     tensor_to_jsonable,
     get_grid_sampled_plane_regions,
+    num_linear_regions_perturb,
 )
 from data import load_dataset, take_first, DATASETS
 from viz import plot_training_results, make_live_animation
@@ -225,7 +226,9 @@ def main(
             )
             print("Humayan Regions: ",
                   history["regions_humayan"][step // regions_freq])
-            # history["regions_perturb"][step // regions_freq, :] =
+            history["regions_perturb"][step // regions_freq, :] = num_linear_regions_perturb(
+                X=X, model=network, D=10, k=5
+            )
             # if make_video:
             #     history["gradients"][step // regions_freq,
             #                          :] = get_gradients(model=network)
