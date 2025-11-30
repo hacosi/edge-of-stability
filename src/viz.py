@@ -106,6 +106,7 @@ def plot_training_results(
                 history["regions_humayan_scale_10"][:, 0].cpu(), label="scale 10")
         ax.fill_between(regions_steps, regions_humayan[:, 1].cpu(
         ), regions_humayan[:, 2].cpu(), alpha=0.3)
+        ax.legend()
         ax.set_xlabel("Step")
         ax.set_ylabel("Humayan Regions")
         ax.set_title("Humayan Count of linear regions")
@@ -123,7 +124,6 @@ def plot_training_results(
         ax.set_ylim(0, num_hanin_line_samples)
         ax.set_xlabel("Step")
         ax.set_ylabel("Hanin Regions")
-        ax.legend()
         ax.set_title("Hanin Count of linear regions")
         ax.grid(True)
     else:
