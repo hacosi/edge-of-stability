@@ -102,6 +102,8 @@ def plot_training_results(
         ), label="scale 0.01")
         ax.plot(regions_steps, history["regions_humayan_scale_0.1"][:, 0].cpu(
         ), label="scale 0.1")
+        ax.plot(regions_steps, history["regions_humayan_scale_0.5"][:, 0].cpu(
+        ), label="scale 0.5")
         ax.plot(regions_steps,
                 history["regions_humayan_scale_10"][:, 0].cpu(), label="scale 10")
         ax.fill_between(regions_steps, regions_humayan[:, 1].cpu(
