@@ -123,6 +123,7 @@ def plot_training_results(
         ax.set_ylim(0, num_hanin_line_samples)
         ax.set_xlabel("Step")
         ax.set_ylabel("Hanin Regions")
+        ax.legend()
         ax.set_title("Hanin Count of linear regions")
         ax.grid(True)
     else:
