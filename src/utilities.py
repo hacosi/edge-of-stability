@@ -431,7 +431,12 @@ def num_linear_regions_hanin(
 
 
 def num_linear_regions_humayan(
-    model: nn.Module, X: torch.Tensor, device: Optional[str] = "cuda", num_humayan_samples: int = 100, p: int = 10
+    model: nn.Module,
+    X: torch.Tensor,
+    device: Optional[str] = "cuda",
+    num_humayan_samples: int = 100,
+    p: int = 10,
+    scale: float = 1,
 ) -> float:
     # Sample point in the training or test set
     # Sample P orthonormal vectors in input space
