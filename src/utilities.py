@@ -476,9 +476,8 @@ def num_linear_regions_humayan(
         attempts += 1
         idx = torch.randint(0, N, (1,)).item()
         x_flat = X_flat[idx]
-        print(x_flat.unsqueeze(1).shape, Q.shape)
         hull_flat = torch.cat(
-            [x_flat.unsqueeze(1) + Q, x_flat.unsqueeze(1) - Q], dim=0)
+            [x_flat.unsqueeze(1) + Q, x_flat.unsqueeze(1) - Q], dim=1)
         hull = hull_flat.T.view(2 * p, d1, d2, d3)
         points_on_device.append(hull)
 
