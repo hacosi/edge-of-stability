@@ -97,20 +97,8 @@ def main(
 
     # scheduler = lr_scheduler.StepLR(
     #     optimizer, step_size=1000, gamma=lr_schedule_gamma)
-
-    train_loss, test_loss, train_acc, test_acc = (
-        torch.zeros(max_steps),
-        torch.zeros(max_steps),
-        torch.zeros(max_steps),
-        torch.zeros(max_steps),
-    )
     # iterates = torch.zeros(
     #     max_steps // iterate_freq if iterate_freq > 0 else 0, len(projectors))
-    eigs = torch.zeros(max_steps // eig_freq if eig_freq >= 0 else 0, neigs)
-    regions_pier = torch.zeros(
-        (max_steps // regions_freq if regions_freq >= 0 else 0), 3)
-    regions_hanin = torch.zeros_like(regions_pier)
-    regions_humayan = torch.zeros_like(regions_pier)
 
     if physical_batch_size == -1:
         physical_batch_size = len(train_dataset)
@@ -127,6 +115,11 @@ def main(
         "regions_humayan_scale_0.1": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         "regions_humayan_scale_0.01": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         "regions_humayan_scale_10": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        "regions_perturb": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        "regions_directional_probe": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        "regions_low_dim_grid_search": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        "regions_pca_sample": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        "regions_generator_sample": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         # "gradients": (
         #     torch.zeros(
         #         (max_steps // regions_freq if regions_freq >= 0 else 0),
@@ -232,6 +225,7 @@ def main(
             )
             print("Humayan Regions: ",
                   history["regions_humayan"][step // regions_freq])
+            history["regions_perturb"]
             # if make_video:
             #     history["gradients"][step // regions_freq,
             #                          :] = get_gradients(model=network)

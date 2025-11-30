@@ -445,7 +445,7 @@ def num_linear_regions_humayan(
     N = X.size(0)
     device = device or (
         next(model.parameters()).device if any(
-            p.requires_grad for p in model.parameters()) else torch.device("cpu")
+            w.requires_grad for w in model.parameters()) else torch.device("cpu")
     )
 
     # compute data envelope radius (L2)
@@ -476,8 +476,9 @@ def num_linear_regions_humayan(
         attempts += 1
         idx = torch.randint(0, N, (1,)).item()
         x_flat = X_flat[idx]
-        hull_flat = x_flat.unsqueeze(1) + Q
-        hull = hull_flat.T.view(p, d1, d2, d3)
+        hull_flat = torch.cat(
+            [x_flat.unsqueeze(1) + Q, x_flat.unsqueeze(1) - Q], dim=0)
+        hull = hull_flat.T.view(2 * p, d1, d2, d3)
         points_on_device.append(hull)
 
     if len(points_on_device) == 0:
@@ -491,6 +492,12 @@ def num_linear_regions_humayan(
     mean = np.mean(counts)
     std = np.std(counts)
     return mean, mean - std, mean + std
+
+
+def num_linear_regions_pertub(X, model, device, D, k):
+    # Sample D points from X
+    #
+    pass
 
 
 def get_gradients(model):
