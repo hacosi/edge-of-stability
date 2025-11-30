@@ -469,7 +469,6 @@ def num_linear_regions_humayan(
     diag_sign = torch.sign(torch.diagonal(R, dim1=-2, dim2=-1))
     diag_sign[diag_sign == 0] = 1.0
     Q = Q * diag_sign.unsqueeze(0)
-    scale = 1
     Q = Q * scale
 
     while attempts < num_humayan_samples:
