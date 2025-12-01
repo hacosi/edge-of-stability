@@ -3,6 +3,7 @@ from typing import List, Tuple, Optional
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from scipy.sparse.linalg import LinearOperator, eigsh
 from torch import Tensor
 from torch.nn.utils import parameters_to_vector, vector_to_parameters
@@ -493,48 +494,232 @@ def num_linear_regions_humayan(
     return mean, mean - std, mean + std
 
 
+def _process_groups_and_stats(model: torch.nn.Module, groups: list, device: Optional[str] = "cuda"):
+    """
+    groups: list of torch.Tensor each shape (m,3,32,32)
+    returns: mean, mean-std, mean+std
+    """
+    if len(groups) == 0:
+        return 1.0, 1.0, 1.0
+
+    device = device or (
+        next(model.parameters()).device if any(
+            p.requires_grad for p in model.parameters()) else torch.device("cpu")
+    )
+
+    counts = []
+    for g in groups:
+        # ensure float32 and on device
+        batch = g.to(device).float()
+        c = count_linear_regions(model=model, batch=batch, device=device)
+        counts.append(float(c))
+    mean = float(np.mean(counts))
+    std = float(np.std(counts))
+    return mean, mean - std, mean + std
+
+
 def num_linear_regions_perturb(
     X,
     model,
     D,
     k,
+    num_anchors: int = 200,
+    per_anchor_augment: int = 10,
+    noise_sigma: float = 0.02,
+    max_translate: int = 2,
     device: Optional[str] = "cuda",
 ):
-    # Sample D points from X
-    # Produce k random small pertubations, gather points then compute linear regions
-    print(X.shape)
+    # print(X.shape) -> [5000, 3, 32, 32]
     N = X.size(0)
-    device = device or (
-        next(model.parameters()).device if any(
-            w.requires_grad for w in model.parameters()) else torch.device("cpu")
-    )
+    rng = torch.Generator()
+    rng.manual_seed(torch.seed() % (2**31 - 1))
+    idxs = torch.randperm(N, generator=rng)[:num_anchors]
 
-    for _ in range(D):
-        idx = torch.randint(0, N, (1,)).item()
-        x = X[idx].to(device)
-        norm_x = float(x.norm().item())
-        if norm_x == 0.0:
-            # degenerate sample (zero vector) — skip or create a small random direction
-            # here we skip to get a meaningful direction
+    groups = []
+    for idx in idxs:
+        anchor = X[idx]  # shape (3,32,32)
+        perturbs = []
+        for _ in range(per_anchor_augment):
+            x = anchor.clone()
+            # random horizontal flip
+            if torch.rand(1).item() < 0.5:
+                # flip width axis (C,H,W) -> flip last dim
+                x = torch.flip(x, dims=[2])
+
+            # small translation: pad then random crop back to 32x32
+            if max_translate > 0:
+                pad = max_translate
+                x_padded = F.pad(x.unsqueeze(
+                    0), (pad, pad, pad, pad), mode="reflect").squeeze(0)
+                top = torch.randint(0, 2 * pad + 1, (1,)).item()
+                left = torch.randint(0, 2 * pad + 1, (1,)).item()
+                x = x_padded[:, top: top + 32, left: left + 32]
+
+            # per-channel brightness jitter
+            scale = torch.empty(3).uniform_(0.9, 1.1)
+            x = (x * scale.view(3, 1, 1)).clamp(0.0, 1.0)
+
+            # additive gaussian noise
+            x = x + torch.randn_like(x) * noise_sigma
+            x = x.clamp(0.0, 1.0)
+            perturbs.append(x)
+
+        # (per_anchor_augment,3,32,32)
+        groups.append(torch.stack(perturbs, dim=0))
+
+    return _process_groups_and_stats(model, groups, device=device)
+
+
+def num_linear_regions_directional_probe(
+    model: torch.nn.Module,
+    X: torch.Tensor,
+    device: Optional[str] = "cuda",
+    num_anchors: int = 200,
+    n_dirs: int = 8,
+    steps: int = 12,
+    eps: float = 0.25,
+) -> Tuple[float, float, float]:
+    """
+    For each of num_anchors anchors, sample n_dirs random directions (Gaussian),
+    normalize them and sample 'steps' points along t in [-eps, eps].
+    Each (direction,line) is one group of size `steps`.
+    """
+    N = X.size(0)
+    rng = torch.Generator()
+    rng.manual_seed(torch.seed() % (2**31 - 1))
+    idxs = torch.randperm(N, generator=rng)[:num_anchors]
+    D = int(X[0].numel())  # 3*32*32
+
+    groups = []
+    for idx in idxs:
+        x0 = X[idx].view(-1)  # flatten
+        if float(x0.norm().item()) == 0.0:
             continue
+        x0_np = x0.cpu().numpy()
+        for _ in range(n_dirs):
+            v = torch.randn(D)
+            v = v / (v.norm() + 1e-12)
+            ts = torch.linspace(-eps, eps, steps)
+            pts = x0.unsqueeze(0) + (ts.unsqueeze(1) @
+                                     v.unsqueeze(0))  # (steps, D)
+            pts = pts.view(steps, *X.shape[1:]).clamp(0.0, 1.0)
+            groups.append(pts)
 
-    pass
-
-
-def num_linear_regions_directional_probe(X, model, D, t):
-    pass
-
-
-def num_linear_regions_low_dim_grid_search(X, model, d, eps):
-    pass
-
-
-def num_linear_regions_PCA(X, model):
-    pass
+    return _process_groups_and_stats(model, groups, device=device)
 
 
-def generator_sampling(X, model):
-    pass
+def num_linear_regions_low_dim_grid_search(
+    model: torch.nn.Module,
+    X: torch.Tensor,
+    device: Optional[str] = "cuda",
+    num_anchors: int = 100,
+    d: int = 2,
+    grid_size: int = 20,
+    eps: float = 0.2,
+) -> Tuple[float, float, float]:
+    """
+    For each anchor, create a random d-dimensional orthonormal basis U (D x d).
+    Sample a grid in [-eps, eps]^d with grid_size points per axis (grid_size^d points).
+    Each subspace (the full grid) is one group passed to count_linear_regions.
+    Defaults: d=2, grid_size=20 -> 400 points per group.
+    """
+    N = X.size(0)
+    D = int(X[0].numel())
+    rng = torch.Generator()
+    rng.manual_seed(torch.seed() % (2**31 - 1))
+    idxs = torch.randperm(N, generator=rng)[:num_anchors]
+
+    # prepare grid in parameter space
+    if d == 1:
+        # (grid_size,1)
+        coords = torch.linspace(-eps, eps, grid_size).unsqueeze(1)
+        Z = coords
+    else:
+        # create grid points using meshgrid (careful with dimensionality)
+        axes = [torch.linspace(-eps, eps, grid_size) for _ in range(d)]
+        mesh = torch.meshgrid(*axes, indexing="ij")
+        Z = torch.stack([m.reshape(-1)
+                        for m in mesh], dim=1)  # (grid_size^d, d)
+
+    groups = []
+    for idx in idxs:
+        anchor = X[idx].view(-1).cpu().numpy()  # D
+        # random gaussian then QR to make orthonormal basis
+        G = np.random.randn(D, d)
+        Q, _ = np.linalg.qr(G)
+        U = torch.tensor(Q[:, :d].astype(np.float32))  # (D,d)
+        # sample offsets
+        Z_np = Z.numpy() if isinstance(Z, torch.Tensor) else Z
+        # map to input space: anchor + Z @ U^T
+        # Z (M,d), U^T (d,D) => (M, D)
+        M = Z_np.shape[0]
+        offsets = Z_np @ U.cpu().numpy().T  # (M,D)
+        pts = torch.from_numpy(offsets.astype(np.float32)) + \
+            torch.from_numpy(anchor.astype(np.float32))[None, :]
+        pts = pts.view(M, *X.shape[1:]).clamp(0.0, 1.0)
+        groups.append(pts)
+
+    return _process_groups_and_stats(model, groups, device=device)
+
+
+def num_linear_regions_PCA(
+    model: torch.nn.Module,
+    X: torch.Tensor,
+    device: Optional[str] = "cuda",
+    num_pca_samples: int = 2000,
+    num_components: int = 3,
+    num_anchors: int = 200,
+    steps_per_line: int = 12,
+    eps: float = 0.25,
+) -> Tuple[float, float, float]:
+    """
+    Compute global PCA on up-to num_pca_samples from X (flattened).
+    For each anchor, sample along the top `num_components` principal components
+    (each PC as a separate line with `steps_per_line` points in [-eps, eps]).
+    Each line is a group.
+    """
+    # sample subset for PCA
+    N = X.size(0)
+    sample_N = min(N, num_pca_samples)
+    idxs = torch.randperm(N)[:sample_N]
+    subset = X[idxs].view(sample_N, -1).to(torch.float32)  # (sample_N, D)
+    mean = subset.mean(dim=0, keepdim=True)
+    centered = subset - mean
+
+    # compute top components via SVD (on small matrix -> fine)
+    # compute economy SVD
+    try:
+        U, S, Vh = torch.linalg.svd(centered, full_matrices=False)
+        # Vh is (D, D) if full; but with full_matrices=False, Vh shape (D, D) too, select rows
+    except Exception:
+        # fallback to cpu svd if GPU causes issues
+        U, S, Vh = torch.linalg.svd(centered.cpu(), full_matrices=False)
+    # Vh has shape (D, D) and rows are principal directions
+    pcs = Vh[:num_components, :]  # (num_components, D)
+
+    # select anchors
+    num_anchors = min(num_anchors, N)
+    a_idxs = torch.randperm(N)[:num_anchors]
+
+    groups = []
+    for ai in a_idxs:
+        anchor = X[ai].view(-1)
+        for k in range(num_components):
+            pc = pcs[k].to(anchor.device)
+            if float(pc.norm().item()) == 0.0:
+                continue
+            pc = pc / (pc.norm() + 1e-12)
+            ts = torch.linspace(-eps, eps, steps_per_line)
+            pts = anchor.unsqueeze(0) + (ts.unsqueeze(1)
+                                         @ pc.unsqueeze(0))  # (steps, D)
+            pts = pts.view(steps_per_line, *X.shape[1:]).clamp(0.0, 1.0)
+            groups.append(pts)
+
+    return _process_groups_and_stats(model, groups, device=device)
+
+
+# def generator_sampling(X, model):
+#     pass
 
 
 def get_gradients(model):

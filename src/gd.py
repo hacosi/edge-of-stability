@@ -28,6 +28,9 @@ from utilities import (
     tensor_to_jsonable,
     get_grid_sampled_plane_regions,
     num_linear_regions_perturb,
+    num_linear_regions_PCA,
+    num_linear_regions_directional_probe,
+    num_linear_regions_low_dim_grid_search,
 )
 from data import load_dataset, take_first, DATASETS
 from viz import plot_training_results, make_live_animation
@@ -121,7 +124,6 @@ def main(
         "regions_directional_probe": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         "regions_low_dim_grid_search": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         "regions_pca_sample": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        "regions_generator_sample": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         # "gradients": (
         #     torch.zeros(
         #         (max_steps // regions_freq if regions_freq >= 0 else 0),
@@ -236,9 +238,18 @@ def main(
             )
             print("Humayan Regions: ",
                   history["regions_humayan"][step // regions_freq])
-            # history["regions_perturb"][step // regions_freq, :] = num_linear_regions_perturb(
-            #     X=X, model=network, D=10, k=5
-            # )
+            history["regions_perturb"][step // regions_freq, :] = num_linear_regions_perturb(
+                X=X, model=network, D=10, k=5
+            )
+            history["regions_directional_probe"][step // regions_freq, :] = num_linear_regions_directional_probe(
+                model=network, X=X
+            )
+            history["regions_low_dim_grid_search"][step // regions_freq, :] = num_linear_regions_low_dim_grid_search(
+                model=network,
+                X=X,
+            )
+            history["regions_pca_sample"][step // regions_freq,
+                                          :] = num_linear_regions_PCA(model=network, X=X)
 
             # if make_video:
             #     history["gradients"][step // regions_freq,
