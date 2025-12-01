@@ -239,7 +239,10 @@ def main(
             print("Humayan Regions: ",
                   history["regions_humayan"][step // regions_freq])
             history["regions_perturb"][step // regions_freq, :] = torch.tensor(
-                num_linear_regions_perturb(X=X, model=network, D=10, k=5)
+                num_linear_regions_perturb(
+                    X=X,
+                    model=network,
+                )
             )
             history["regions_directional_probe"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_directional_probe(model=network, X=X)
