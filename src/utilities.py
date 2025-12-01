@@ -691,7 +691,8 @@ def num_linear_regions_PCA(
     # 1) PCA on a subset
     sample_N = min(int(N), int(num_pca_samples))
     rng_idxs = torch.randperm(N)[:sample_N]
-    subset = X[rng_idxs].view(sample_N, -1).to(torch.float32)  # (sample_N, D)
+    subset = X[rng_idxs].reshape(
+        sample_N, -1).to(torch.float32)  # (sample_N, D)
     mean = subset.mean(dim=0, keepdim=True)
     centered = subset - mean  # (sample_N, D)
 
@@ -729,11 +730,11 @@ def num_linear_regions_PCA(
     Z_np = Z.numpy()  # (M, num_components)
 
     for ai in anchor_idxs:
-        anchor = X[ai].view(-1).cpu().numpy()  # (D,)
+        anchor = X[ai].reshape(-1).cpu().numpy()  # (D,)
         # Map coefficients to input offsets: offsets = Z @ pcs_np  -> (M, D)
         offsets = Z_np @ pcs_np  # (M, D)
         pts = offsets + anchor[None, :]  # (M, D)
-        pts_t = torch.from_numpy(pts.astype(np.float32)).view(
+        pts_t = torch.from_numpy(pts.astype(np.float32)).reshape(
             M, *X.shape[1:]).clamp(0.0, 1.0)
         groups.append(pts_t)
 
