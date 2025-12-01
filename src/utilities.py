@@ -682,7 +682,7 @@ def num_linear_regions_PCA(
     N = X.size(0)
     sample_N = min(N, num_pca_samples)
     idxs = torch.randperm(N)[:sample_N]
-    subset = X[idxs].view(sample_N, -1).to(torch.float32)  # (sample_N, D)
+    subset = X[idxs].reshape(sample_N, -1).to(torch.float32)  # (sample_N, D)
     mean = subset.mean(dim=0, keepdim=True)
     centered = subset - mean
 
@@ -703,7 +703,7 @@ def num_linear_regions_PCA(
 
     groups = []
     for ai in a_idxs:
-        anchor = X[ai].view(-1)
+        anchor = X[ai].reshape(-1)
         for k in range(num_components):
             pc = pcs[k].to(anchor.device)
             if float(pc.norm().item()) == 0.0:
