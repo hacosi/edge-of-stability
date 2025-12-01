@@ -593,7 +593,7 @@ def num_linear_regions_directional_probe(
     groups = []
     for idx in idxs:
         print(X[idx].shape)
-        x0 = X[idx].view(-1)  # flatten
+        x0 = X[idx].reshape(-1)  # flatten
         if float(x0.norm().item()) == 0.0:
             continue
         x0_np = x0.cpu().numpy()
@@ -644,7 +644,7 @@ def num_linear_regions_low_dim_grid_search(
 
     groups = []
     for idx in idxs:
-        anchor = X[idx].view(-1).cpu().numpy()  # D
+        anchor = X[idx].reshape(-1).cpu().numpy()  # D
         # random gaussian then QR to make orthonormal basis
         G = np.random.randn(D, d)
         Q, _ = np.linalg.qr(G)
