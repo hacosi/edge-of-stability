@@ -613,7 +613,7 @@ def num_linear_regions_low_dim_grid_search(
     num_anchors: int = 100,
     d: int = 2,
     grid_size: int = 20,
-    eps: float = 0.2,
+    eps: float = 0.5,
 ) -> Tuple[float, float, float]:
     """
     For each anchor, create a random d-dimensional orthonormal basis U (D x d).
