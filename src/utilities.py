@@ -521,10 +521,8 @@ def _process_groups_and_stats(model: torch.nn.Module, groups: list, device: Opti
 def num_linear_regions_perturb(
     X,
     model,
-    D,
-    k,
     num_anchors: int = 200,
-    per_anchor_augment: int = 10,
+    per_anchor_augment: int = 100,
     noise_sigma: float = 0.02,
     max_translate: int = 2,
     device: Optional[str] = "cuda",
@@ -576,7 +574,7 @@ def num_linear_regions_directional_probe(
     device: Optional[str] = "cuda",
     num_anchors: int = 200,
     n_dirs: int = 8,
-    steps: int = 12,
+    steps: int = 100,
     eps: float = 0.25,
 ) -> Tuple[float, float, float]:
     """
@@ -667,53 +665,77 @@ def num_linear_regions_PCA(
     X: torch.Tensor,
     device: Optional[str] = "cuda",
     num_pca_samples: int = 2000,
-    num_components: int = 3,
+    num_components: int = 2,
     num_anchors: int = 200,
-    steps_per_line: int = 12,
+    grid_size: int = 20,
     eps: float = 0.25,
 ) -> Tuple[float, float, float]:
     """
-    Compute global PCA on up-to num_pca_samples from X (flattened).
-    For each anchor, sample along the top `num_components` principal components
-    (each PC as a separate line with `steps_per_line` points in [-eps, eps]).
-    Each line is a group.
+    Grid search over the top `num_components` principal components.
+
+    - Compute PCA on up-to `num_pca_samples` points from X.
+    - For each anchor (num_anchors), build a regular grid in [-eps, eps]^num_components
+      with `grid_size` points per axis (grid_size**num_components points).
+    - Map grid points back into input space with anchor + Z @ PC_matrix.T and clamp to [0,1].
+    - Each anchor's full grid is treated as one group for count_linear_regions.
+    - Returns mean, mean-std, mean+std across anchors (groups).
+
+    Defaults produce groups of size 20^2 = 400 when num_components=2.
     """
-    # sample subset for PCA
     N = X.size(0)
-    sample_N = min(N, num_pca_samples)
-    idxs = torch.randperm(N)[:sample_N]
-    subset = X[idxs].reshape(sample_N, -1).to(torch.float32)  # (sample_N, D)
+    device = device or (
+        next(model.parameters()).device if any(
+            p.requires_grad for p in model.parameters()) else torch.device("cpu")
+    )
+
+    # 1) PCA on a subset
+    sample_N = min(int(N), int(num_pca_samples))
+    rng_idxs = torch.randperm(N)[:sample_N]
+    subset = X[rng_idxs].view(sample_N, -1).to(torch.float32)  # (sample_N, D)
     mean = subset.mean(dim=0, keepdim=True)
-    centered = subset - mean
+    centered = subset - mean  # (sample_N, D)
 
-    # compute top components via SVD (on small matrix -> fine)
-    # compute economy SVD
+    # compute SVD to get principal directions (rows of Vh)
     try:
+        # Use torch.linalg.svd; on GPU this is usually OK for modest sample_N
         U, S, Vh = torch.linalg.svd(centered, full_matrices=False)
-        # Vh is (D, D) if full; but with full_matrices=False, Vh shape (D, D) too, select rows
     except Exception:
-        # fallback to cpu svd if GPU causes issues
+        # fallback: move to cpu if necessary
         U, S, Vh = torch.linalg.svd(centered.cpu(), full_matrices=False)
-    # Vh has shape (D, D) and rows are principal directions
-    pcs = Vh[:num_components, :]  # (num_components, D)
 
-    # select anchors
-    num_anchors = min(num_anchors, N)
-    a_idxs = torch.randperm(N)[:num_anchors]
+    D = centered.shape[1]
+    if num_components > D:
+        raise ValueError(
+            f"num_components ({num_components}) cannot exceed data dimension ({D}).")
+
+    # (num_components, D)  <-- each row is a principal direction
+    pcs = Vh[:num_components, :]
+
+    # 2) prepare grid coords in PCA coefficient space
+    axes = [torch.linspace(-eps, eps, grid_size)
+            for _ in range(num_components)]
+    mesh = torch.meshgrid(*axes, indexing="ij")
+    Z = torch.stack([m.reshape(-1)
+                    for m in mesh], dim=1)  # (M, num_components)
+    M = Z.shape[0]  # grid_size**num_components
+
+    # 3) select anchors
+    num_anchors = min(int(num_anchors), N)
+    anchor_idxs = torch.randperm(N)[:num_anchors]
 
     groups = []
-    for ai in a_idxs:
-        anchor = X[ai].reshape(-1)
-        for k in range(num_components):
-            pc = pcs[k].to(anchor.device)
-            if float(pc.norm().item()) == 0.0:
-                continue
-            pc = pc / (pc.norm() + 1e-12)
-            ts = torch.linspace(-eps, eps, steps_per_line)
-            pts = anchor.unsqueeze(0) + (ts.unsqueeze(1)
-                                         @ pc.unsqueeze(0))  # (steps, D)
-            pts = pts.view(steps_per_line, *X.shape[1:]).clamp(0.0, 1.0)
-            groups.append(pts)
+    # We'll convert pcs to numpy for faster mapping if needed
+    pcs_np = pcs.cpu().numpy()  # (num_components, D)
+    Z_np = Z.numpy()  # (M, num_components)
+
+    for ai in anchor_idxs:
+        anchor = X[ai].view(-1).cpu().numpy()  # (D,)
+        # Map coefficients to input offsets: offsets = Z @ pcs_np  -> (M, D)
+        offsets = Z_np @ pcs_np  # (M, D)
+        pts = offsets + anchor[None, :]  # (M, D)
+        pts_t = torch.from_numpy(pts.astype(np.float32)).view(
+            M, *X.shape[1:]).clamp(0.0, 1.0)
+        groups.append(pts_t)
 
     return _process_groups_and_stats(model, groups, device=device)
 
