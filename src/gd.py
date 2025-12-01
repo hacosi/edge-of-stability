@@ -238,18 +238,21 @@ def main(
             )
             print("Humayan Regions: ",
                   history["regions_humayan"][step // regions_freq])
-            history["regions_perturb"][step // regions_freq, :] = num_linear_regions_perturb(
-                X=X, model=network, D=10, k=5
+            history["regions_perturb"][step // regions_freq, :] = torch.tensor(
+                num_linear_regions_perturb(X=X, model=network, D=10, k=5)
             )
-            history["regions_directional_probe"][step // regions_freq, :] = num_linear_regions_directional_probe(
-                model=network, X=X
+            history["regions_directional_probe"][step // regions_freq, :] = torch.tensor(
+                num_linear_regions_directional_probe(model=network, X=X)
             )
-            history["regions_low_dim_grid_search"][step // regions_freq, :] = num_linear_regions_low_dim_grid_search(
-                model=network,
-                X=X,
+            history["regions_low_dim_grid_search"][step // regions_freq, :] = torch.tensor(
+                num_linear_regions_low_dim_grid_search(
+                    model=network,
+                    X=X,
+                )
             )
-            history["regions_pca_sample"][step // regions_freq,
-                                          :] = num_linear_regions_PCA(model=network, X=X)
+            history["regions_pca_sample"][step // regions_freq, :] = torch.tensor(
+                num_linear_regions_PCA(model=network, X=X)
+            )
 
             # if make_video:
             #     history["gradients"][step // regions_freq,
