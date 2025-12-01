@@ -524,7 +524,7 @@ def num_linear_regions_perturb(
     num_anchors: int = 500,
     per_anchor_augment: int = 100,
     noise_sigma: float = 0.01,
-    max_translate: int = 2,
+    max_translate: int = 1,
     device: Optional[str] = "cuda",
 ):
     # print(X.shape) -> [5000, 3, 32, 32]
@@ -575,7 +575,7 @@ def num_linear_regions_directional_probe(
     num_anchors: int = 500,
     n_dirs: int = 8,
     steps: int = 100,
-    eps: float = 1,
+    eps: float = 2,
 ) -> Tuple[float, float, float]:
     """
     For each of num_anchors anchors, sample n_dirs random directions (Gaussian),
@@ -613,7 +613,7 @@ def num_linear_regions_low_dim_grid_search(
     num_anchors: int = 500,
     d: int = 2,
     grid_size: int = 20,
-    eps: float = 1,
+    eps: float = 2,
 ) -> Tuple[float, float, float]:
     """
     For each anchor, create a random d-dimensional orthonormal basis U (D x d).
@@ -668,7 +668,7 @@ def num_linear_regions_PCA(
     num_components: int = 2,
     num_anchors: int = 500,
     grid_size: int = 20,
-    eps: float = 1,
+    eps: float = 2,
 ) -> Tuple[float, float, float]:
     """
     Grid search over the top `num_components` principal components.
