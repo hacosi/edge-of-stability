@@ -592,7 +592,6 @@ def num_linear_regions_directional_probe(
 
     groups = []
     for idx in idxs:
-        print(X[idx].shape)
         x0 = X[idx].reshape(-1)  # flatten
         if float(x0.norm().item()) == 0.0:
             continue
