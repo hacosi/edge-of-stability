@@ -36,7 +36,7 @@ def plot_training_results(
     regions_low_dim_grid_search = history["regions_low_dim_grid_search"]
 
     steps = np.arange(len(train_loss))
-    fig, axes = plt.subplots(4, 3, figsize=(12, 8))
+    fig, axes = plt.subplots(3, 2, figsize=(12, 8))
     fig.suptitle(title, fontsize=16)
 
     ax = axes[0, 0]
@@ -81,22 +81,22 @@ def plot_training_results(
         ax.grid(True)
     else:
         axes[1, 0].axis("off")
-
-    if regions_freq > 0 and len(regions_pier) > 0:
-        regions_steps = np.arange(0, len(train_loss), regions_freq)[
-            : len(regions_pier)]
-        ax = axes[1, 1]
-        ax.plot(regions_steps, regions_pier[:, 0].cpu())
-        ax.fill_between(regions_steps, regions_pier[:, 1].cpu(
-        ), regions_pier[:, 2].cpu(), alpha=0.3)
-        ax.set_ylim(0, num_samples_line)
-        ax.set_xlabel("Step")
-        ax.set_ylabel("Pier Regions")
-        ax.set_title("Pier Count of linear regions")
-        ax.grid(True)
-    else:
-        axes[1, 1].axis("off")
-
+    #
+    # if regions_freq > 0 and len(regions_pier) > 0:
+    #     regions_steps = np.arange(0, len(train_loss), regions_freq)[
+    #         : len(regions_pier)]
+    #     ax = axes[1, 1]
+    #     ax.plot(regions_steps, regions_pier[:, 0].cpu())
+    #     ax.fill_between(regions_steps, regions_pier[:, 1].cpu(
+    #     ), regions_pier[:, 2].cpu(), alpha=0.3)
+    #     ax.set_ylim(0, num_samples_line)
+    #     ax.set_xlabel("Step")
+    #     ax.set_ylabel("Pier Regions")
+    #     ax.set_title("Pier Count of linear regions")
+    #     ax.grid(True)
+    # else:
+    #     axes[1, 1].axis("off")
+    #
     if regions_freq > 0 and len(regions_humayan) > 0:
         regions_steps = np.arange(0, len(train_loss), regions_freq)[
             : len(regions_humayan)]
@@ -134,49 +134,50 @@ def plot_training_results(
         ax.grid(True)
     else:
         axes[2, 1].axis("off")
-
-    regions_steps = np.arange(0, len(train_loss), regions_freq)[
-        : len(regions_perturb)]
-    ax = axes[3, 0]
-    ax.plot(regions_steps, regions_perturb[:, 0].cpu())
-    ax.fill_between(regions_steps, regions_perturb[:, 1].cpu(
-    ), regions_perturb[:, 2].cpu(), alpha=0.3)
-    ax.set_xlabel("Step")
-    ax.set_ylabel("Perturb Regions")
-    ax.set_title("Perturb Count of linear regions")
-    ax.grid(True)
-
-    regions_steps = np.arange(0, len(train_loss), regions_freq)[
-        : len(regions_perturb)]
-    ax = axes[3, 1]
-    ax.plot(regions_steps, regions_directional_probe[:, 0].cpu())
-    ax.fill_between(
-        regions_steps, regions_directional_probe[:, 1].cpu(), regions_directional_probe[:, 2].cpu(), alpha=0.3
-    )
-    ax.set_xlabel("Step")
-    ax.set_ylabel("Directional Probe Regions")
-    ax.set_title("Directional Probe Count of linear regions")
-    ax.grid(True)
-
-    ax = axes[3, 2]
-    ax.plot(regions_steps, regions_low_dim_grid_search[:, 0].cpu())
-    ax.fill_between(
-        regions_steps, regions_low_dim_grid_search[:, 1].cpu(), regions_low_dim_grid_search[:, 2].cpu(), alpha=0.3
-    )
-    ax.set_xlabel("Step")
-    ax.set_ylabel("Regions")
-    ax.set_title("Low Dim Grid Search Count of linear regions")
-    ax.grid(True)
-
-    ax = axes[2, 2]
-    ax.plot(regions_steps, regions_pca[:, 0].cpu())
-    ax.fill_between(regions_steps, regions_pca[:, 1].cpu(
-    ), regions_pca[:, 2].cpu(), alpha=0.3)
-    ax.set_xlabel("Step")
-    ax.set_ylabel("PCA Regions")
-    ax.set_title("PCA Count of linear regions")
-    ax.grid(True)
-
+    #
+    # regions_steps = np.arange(0, len(train_loss), regions_freq)[
+    #     : len(regions_perturb)]
+    # ax = axes[3, 0]
+    # ax.plot(regions_steps, regions_perturb[:, 0].cpu())
+    # ax.fill_between(regions_steps, regions_perturb[:, 1].cpu(
+    # ), regions_perturb[:, 2].cpu(), alpha=0.3)
+    # ax.set_xlabel("Step")
+    # ax.set_ylim(0, 100)
+    # ax.set_ylabel("Perturb Regions")
+    # ax.set_title("Perturb Count of linear regions")
+    # ax.grid(True)
+    #
+    # regions_steps = np.arange(0, len(train_loss), regions_freq)[
+    #     : len(regions_perturb)]
+    # ax = axes[3, 1]
+    # ax.plot(regions_steps, regions_directional_probe[:, 0].cpu())
+    # ax.fill_between(
+    #     regions_steps, regions_directional_probe[:, 1].cpu(), regions_directional_probe[:, 2].cpu(), alpha=0.3
+    # )
+    # ax.set_xlabel("Step")
+    # ax.set_ylabel("Directional Probe Regions")
+    # ax.set_title("Directional Probe Count of linear regions")
+    # ax.grid(True)
+    #
+    # ax = axes[3, 2]
+    # ax.plot(regions_steps, regions_low_dim_grid_search[:, 0].cpu())
+    # ax.fill_between(
+    #     regions_steps, regions_low_dim_grid_search[:, 1].cpu(), regions_low_dim_grid_search[:, 2].cpu(), alpha=0.3
+    # )
+    # ax.set_xlabel("Step")
+    # ax.set_ylabel("Regions")
+    # ax.set_title("Low Dim Grid Search Count of linear regions")
+    # ax.grid(True)
+    #
+    # ax = axes[2, 2]
+    # ax.plot(regions_steps, regions_pca[:, 0].cpu())
+    # ax.fill_between(regions_steps, regions_pca[:, 1].cpu(
+    # ), regions_pca[:, 2].cpu(), alpha=0.3)
+    # ax.set_xlabel("Step")
+    # ax.set_ylabel("PCA Regions")
+    # ax.set_title("PCA Count of linear regions")
+    # ax.grid(True)
+    #
     plt.tight_layout(rect=[0, 0, 1, 0.96])  # leave room for suptitle
     save_path = f"{path}.png"
     plt.savefig(save_path)
