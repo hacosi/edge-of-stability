@@ -12,6 +12,7 @@ os.makedirs(DATASETS_FOLDER, exist_ok=True)
 def load_mnist(loss: str) -> (TensorDataset, TensorDataset):
     mnist_train = MNIST(root=DATASETS_FOLDER, download=True, train=True)
     mnist_test = MNIST(root=DATASETS_FOLDER, download=True, train=False)
+    print(mnist_train.data.numpy())
     X_train_np = mnist_train.data.numpy().astype(np.float32) / 255.0
     X_test_np = mnist_test.data.numpy().astype(np.float32) / 255.0
 
