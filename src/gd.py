@@ -80,7 +80,6 @@ def main(
     # makedirs(directory, exist_ok=True)
 
     train_dataset, test_dataset = load_dataset(dataset, loss)
-    load_dataset("mnist", loss)
     abridged_train = take_first(train_dataset, abridged_size)
 
     loss_str = loss
@@ -308,7 +307,7 @@ def main(
     #     )
     #
     print("Dumping results...")
-    with open("path.json", "w") as f:
+    with open(f"{path}.json", "w") as f:
         history_json_serializable = tensor_to_jsonable(history)
         json.dump(history_json_serializable, f, indent=2)
 
