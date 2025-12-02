@@ -158,7 +158,7 @@ def main(
                 history["eigs"][step // eig_freq] = get_hessian_eigenvalues(
                     network, loss_fn, abridged_train, neigs=neigs, physical_batch_size=physical_batch_size, P=P
                 )
-                print("eigenvalues: ", history["eigs"][step // eig_freq, :])
+                print("eigenvalues: ", history["eigs"][step // eig_freq])
         else:
             if eig_freq != -1 and step % eig_freq == 0:
                 history["eigs"][step // eig_freq] = get_hessian_eigenvalues(
