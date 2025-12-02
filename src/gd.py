@@ -175,35 +175,35 @@ def main(
         if regions_freq != -1 and step % regions_freq == 0:
             print("epoch ", step)
 
-            X = train_dataset.tensors[0]
+            x = train_dataset.tensors[0]
             y = train_dataset.tensors[1]
 
             # history["regions_pier"][step // regions_freq, :] = torch.tensor(
             #     num_linear_regions_pier(
-            #         model=network, X=X, y=y, num_samples_pairs=num_samples_pairs, num_samples_line=num_samples_line
+            #         model=network, x=x, y=y, num_samples_pairs=num_samples_pairs, num_samples_line=num_samples_line
             #     )
             # )
-            # print("Pier Regions: ",
+            # print("pier regions: ",
             #       history["regions_pier"][step // regions_freq])
             history["regions_hanin"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_hanin(
                     model=network,
-                    X=X,
+                    x=x,
                     num_hanin_point_samples=num_hanin_point_samples,
                     num_hanin_line_samples=num_hanin_line_samples,
                 )
             )
-            print("Hanin Regions: ",
+            print("hanin regions: ",
                   history["regions_hanin"][step // regions_freq])
             history["regions_humayan"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_humayan(
-                    model=network, X=X, num_humayan_samples=num_humayan_samples, p=num_humayan_orthonormal_vectors
+                    model=network, x=x, num_humayan_samples=num_humayan_samples, p=num_humayan_orthonormal_vectors
                 )
             )
             history["regions_humayan_scale_0.01"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_humayan(
                     model=network,
-                    X=X,
+                    x=x,
                     num_humayan_samples=num_humayan_samples,
                     p=num_humayan_orthonormal_vectors,
                     scale=0.01,
@@ -212,7 +212,7 @@ def main(
             history["regions_humayan_scale_0.1"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_humayan(
                     model=network,
-                    X=X,
+                    x=x,
                     num_humayan_samples=num_humayan_samples,
                     p=num_humayan_orthonormal_vectors,
                     scale=0.1,
@@ -221,7 +221,7 @@ def main(
             history["regions_humayan_scale_10"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_humayan(
                     model=network,
-                    X=X,
+                    x=x,
                     num_humayan_samples=num_humayan_samples,
                     p=num_humayan_orthonormal_vectors,
                     scale=10,
@@ -230,13 +230,13 @@ def main(
             history["regions_humayan_scale_0.5"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_humayan(
                     model=network,
-                    X=X,
+                    x=x,
                     num_humayan_samples=num_humayan_samples,
                     p=num_humayan_orthonormal_vectors,
                     scale=0.5,
                 )
             )
-            print("Humayan Regions: ",
+            print("humayan regions: ",
                   history["regions_humayan"][step // regions_freq])
             # history["regions_perturb"][step // regions_freq, :] = torch.tensor(
             #     num_linear_regions_perturb(
