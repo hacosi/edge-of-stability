@@ -80,6 +80,7 @@ def main(
     # makedirs(directory, exist_ok=True)
 
     train_dataset, test_dataset = load_dataset(dataset, loss)
+    load_dataset("mnist", loss)
     abridged_train = take_first(train_dataset, abridged_size)
 
     loss_str = loss
