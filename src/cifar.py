@@ -46,6 +46,7 @@ def make_labels(y, loss):
 def load_cifar(loss: str) -> (TensorDataset, TensorDataset):
     cifar10_train = CIFAR10(root=DATASETS_FOLDER, download=True, train=True)
     cifar10_test = CIFAR10(root=DATASETS_FOLDER, download=True, train=False)
+    print(cifar10_train.data.shape)
     X_train, X_test = (
         flatten(cifar10_train.data / 255),
         flatten(cifar10_test.data / 255),
@@ -56,18 +57,15 @@ def load_cifar(loss: str) -> (TensorDataset, TensorDataset):
     )
     center_X_train, center_X_test = center(X_train, X_test)
     standardized_X_train, standardized_X_test = standardize(
-        center_X_train, center_X_test
-    )
+        center_X_train, center_X_test)
     train = TensorDataset(
-        torch.from_numpy(
-            unflatten(standardized_X_train, (32, 32, 3)).transpose((0, 3, 1, 2))
-        ).float(),
+        torch.from_numpy(unflatten(standardized_X_train,
+                         (32, 32, 3)).transpose((0, 3, 1, 2))).float(),
         y_train,
     )
     test = TensorDataset(
-        torch.from_numpy(
-            unflatten(standardized_X_test, (32, 32, 3)).transpose((0, 3, 1, 2))
-        ).float(),
+        torch.from_numpy(unflatten(standardized_X_test,
+                         (32, 32, 3)).transpose((0, 3, 1, 2))).float(),
         y_test,
     )
     return train, test
