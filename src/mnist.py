@@ -11,10 +11,9 @@ os.makedirs(DATASETS_FOLDER, exist_ok=True)
 def load_mnist(loss: str) -> (TensorDataset, TensorDataset):
     mnist_train = MNIST(root=DATASETS_FOLDER, download=True, train=True)
     mnist_test = MNIST(root=DATASETS_FOLDER, download=True, train=False)
-    print(type(mnist_train))
     X_train, X_test = (
-        flatten(mnist_train.data.unsqueeze(-1) / 255).to_numpy(),
-        flatten(mnist_test.data.unsqueeze(-1) / 255).to_numpy(),
+        flatten(mnist_train.data.unsqueeze(-1) / 255),
+        flatten(mnist_test.data.unsqueeze(-1) / 255),
     )
     y_train, y_test = (
         make_labels(torch.tensor(mnist_train.targets), loss),
