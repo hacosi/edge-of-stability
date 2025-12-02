@@ -122,7 +122,7 @@ def main(
         "regions_humayan_scale_10": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         # "regions_perturb": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         # "regions_directional_probe": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        # "regions_low_dim_grid_search": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        "regions_low_dim_grid_search": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         # "regions_pca_sample": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         # "gradients": (
         #     torch.zeros(
@@ -247,12 +247,12 @@ def main(
             # history["regions_directional_probe"][step // regions_freq, :] = torch.tensor(
             #     num_linear_regions_directional_probe(model=network, X=X)
             # )
-            # history["regions_low_dim_grid_search"][step // regions_freq, :] = torch.tensor(
-            #     num_linear_regions_low_dim_grid_search(
-            #         model=network,
-            #         X=X,
-            #     )
-            # )
+            history["regions_low_dim_grid_search"][step // regions_freq, :] = torch.tensor(
+                num_linear_regions_low_dim_grid_search(
+                    model=network,
+                    X=x,
+                )
+            )
             # history["regions_pca_sample"][step // regions_freq, :] = torch.tensor(
             #     num_linear_regions_PCA(model=network, X=X)
             # )
