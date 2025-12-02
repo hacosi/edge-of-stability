@@ -112,15 +112,15 @@ def main(
         "test_loss": torch.zeros(max_steps),
         "train_acc": torch.zeros(max_steps),
         "test_acc": torch.zeros(max_steps),
-        "eigs": torch.zeros(max_steps // eig_freq if eig_freq >= 0 else 0),
+        # "eigs": torch.zeros(max_steps // eig_freq if eig_freq >= 0 else 0),
         # "regions_pier": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         "regions_hanin": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        "regions_humayan": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        "regions_humayan_scale_0.1": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        "regions_humayan_scale_0.5": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        # "regions_perturb": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        # "regions_directional_probe": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        "regions_low_dim_grid_search": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        # "regions_humayan": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        # "regions_humayan_scale_0.1": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        # "regions_humayan_scale_0.5": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        # # "regions_perturb": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        # # "regions_directional_probe": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        # "regions_low_dim_grid_search": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         # "regions_pca_sample": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         # "gradients": (
         #     torch.zeros(
@@ -149,27 +149,27 @@ def main(
         history["test_loss"][step], history["test_acc"][step] = compute_losses(
             network, [loss_fn, acc_fn], test_dataset, physical_batch_size
         )
-
-        if opt == "adam":
-            if step > 0 and eig_freq != -1 and step % eig_freq == 0:
-                nu = get_adam_nu(optimizer)
-                P = (1 - beta1**step) * \
-                    ((nu / (1 - beta2**step)).sqrt() + adam_epsilon)
-                history["eigs"][step // eig_freq] = get_hessian_eigenvalues(
-                    network, loss_fn, abridged_train, neigs=neigs, physical_batch_size=physical_batch_size, P=P
-                )
-                print("eigenvalues: ", history["eigs"][step // eig_freq])
-        else:
-            if eig_freq != -1 and step % eig_freq == 0:
-                history["eigs"][step // eig_freq] = get_hessian_eigenvalues(
-                    network,
-                    loss_fn,
-                    abridged_train,
-                    neigs=neigs,
-                    physical_batch_size=physical_batch_size,
-                )
-                print("eigenvalues: ", history["eigs"][step // eig_freq])
-
+        #
+        # if opt == "adam":
+        #     if step > 0 and eig_freq != -1 and step % eig_freq == 0:
+        #         nu = get_adam_nu(optimizer)
+        #         P = (1 - beta1**step) * \
+        #             ((nu / (1 - beta2**step)).sqrt() + adam_epsilon)
+        #         history["eigs"][step // eig_freq] = get_hessian_eigenvalues(
+        #             network, loss_fn, abridged_train, neigs=neigs, physical_batch_size=physical_batch_size, P=P
+        #         )
+        #         print("eigenvalues: ", history["eigs"][step // eig_freq])
+        # else:
+        #     if eig_freq != -1 and step % eig_freq == 0:
+        #         history["eigs"][step // eig_freq] = get_hessian_eigenvalues(
+        #             network,
+        #             loss_fn,
+        #             abridged_train,
+        #             neigs=neigs,
+        #             physical_batch_size=physical_batch_size,
+        #         )
+        #         print("eigenvalues: ", history["eigs"][step // eig_freq])
+        #
         if regions_freq != -1 and step % regions_freq == 0:
             print("epoch ", step)
 
@@ -194,49 +194,49 @@ def main(
             print("hanin regions: ",
                   history["regions_hanin"][step // regions_freq])
 
-            history["regions_humayan"][step // regions_freq, :] = torch.tensor(
-                num_linear_regions_humayan(
-                    model=network, X=X, num_humayan_samples=num_humayan_samples, p=num_humayan_orthonormal_vectors
-                )
-            )
-
-            history["regions_humayan_scale_0.1"][step // regions_freq, :] = torch.tensor(
-                num_linear_regions_humayan(
-                    model=network,
-                    X=X,
-                    num_humayan_samples=num_humayan_samples,
-                    p=num_humayan_orthonormal_vectors,
-                    scale=0.1,
-                )
-            )
-
-            history["regions_humayan_scale_0.5"][step // regions_freq, :] = torch.tensor(
-                num_linear_regions_humayan(
-                    model=network,
-                    X=X,
-                    num_humayan_samples=num_humayan_samples,
-                    p=num_humayan_orthonormal_vectors,
-                    scale=0.5,
-                )
-            )
-            print("humayan regions: ",
-                  history["regions_humayan"][step // regions_freq])
-            # history["regions_perturb"][step // regions_freq, :] = torch.tensor(
-            #     num_linear_regions_perturb(
-            #         X=X,
-            #         model=network,
+            # history["regions_humayan"][step // regions_freq, :] = torch.tensor(
+            #     num_linear_regions_humayan(
+            #         model=network, X=X, num_humayan_samples=num_humayan_samples, p=num_humayan_orthonormal_vectors
             #     )
             # )
-            # history["regions_directional_probe"][step // regions_freq, :] = torch.tensor(
-            #     num_linear_regions_directional_probe(model=network, X=X)
+            #
+            # history["regions_humayan_scale_0.1"][step // regions_freq, :] = torch.tensor(
+            #     num_linear_regions_humayan(
+            #         model=network,
+            #         X=X,
+            #         num_humayan_samples=num_humayan_samples,
+            #         p=num_humayan_orthonormal_vectors,
+            #         scale=0.1,
+            #     )
             # )
-            history["regions_low_dim_grid_search"][step // regions_freq, :] = torch.tensor(
-                num_linear_regions_low_dim_grid_search(
-                    model=network,
-                    X=X,
-                )
-            )
-            # history["regions_pca_sample"][step // regions_freq, :] = torch.tensor(
+            #
+            # history["regions_humayan_scale_0.5"][step // regions_freq, :] = torch.tensor(
+            #     num_linear_regions_humayan(
+            #         model=network,
+            #         X=X,
+            #         num_humayan_samples=num_humayan_samples,
+            #         p=num_humayan_orthonormal_vectors,
+            #         scale=0.5,
+            #     )
+            # )
+            # print("humayan regions: ",
+            #       history["regions_humayan"][step // regions_freq])
+            # # history["regions_perturb"][step // regions_freq, :] = torch.tensor(
+            # #     num_linear_regions_perturb(
+            # #         X=X,
+            # #         model=network,
+            # #     )
+            # # )
+            # # history["regions_directional_probe"][step // regions_freq, :] = torch.tensor(
+            # #     num_linear_regions_directional_probe(model=network, X=X)
+            # # )
+            # history["regions_low_dim_grid_search"][step // regions_freq, :] = torch.tensor(
+            #     num_linear_regions_low_dim_grid_search(
+            #         model=network,
+            #         X=X,
+            #     )
+            # )
+            # # history["regions_pca_sample"][step // regions_freq, :] = torch.tensor(
             #     num_linear_regions_PCA(model=network, X=X)
             # )
             #
