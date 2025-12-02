@@ -118,8 +118,6 @@ def main(
         "regions_humayan": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         "regions_humayan_scale_0.1": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         "regions_humayan_scale_0.5": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        "regions_humayan_scale_0.01": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        "regions_humayan_scale_10": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         # "regions_perturb": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         # "regions_directional_probe": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         "regions_low_dim_grid_search": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
@@ -195,20 +193,13 @@ def main(
             )
             print("hanin regions: ",
                   history["regions_hanin"][step // regions_freq])
+
             history["regions_humayan"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_humayan(
                     model=network, x=x, num_humayan_samples=num_humayan_samples, p=num_humayan_orthonormal_vectors
                 )
             )
-            history["regions_humayan_scale_0.01"][step // regions_freq, :] = torch.tensor(
-                num_linear_regions_humayan(
-                    model=network,
-                    x=x,
-                    num_humayan_samples=num_humayan_samples,
-                    p=num_humayan_orthonormal_vectors,
-                    scale=0.01,
-                )
-            )
+
             history["regions_humayan_scale_0.1"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_humayan(
                     model=network,
@@ -218,15 +209,7 @@ def main(
                     scale=0.1,
                 )
             )
-            history["regions_humayan_scale_10"][step // regions_freq, :] = torch.tensor(
-                num_linear_regions_humayan(
-                    model=network,
-                    x=x,
-                    num_humayan_samples=num_humayan_samples,
-                    p=num_humayan_orthonormal_vectors,
-                    scale=10,
-                )
-            )
+
             history["regions_humayan_scale_0.5"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_humayan(
                     model=network,
@@ -294,21 +277,21 @@ def main(
     results_dir = "results"
     os.makedirs(results_dir, exist_ok=True)
     print("Generating plot of results...")
-    plot_training_results(
-        history,
-        title,
-        path,
-        eig_freq,
-        regions_freq,
-        num_samples_line,
-        lr,
-        num_hanin_line_samples,
-        num_humayan_orthonormal_vectors,
-        lr_schedule_gamma,
-        lr_schedule_steps,
-        opt,
-    )
-
+    # plot_training_results(
+    #     history,
+    #     title,
+    #     path,
+    #     eig_freq,
+    #     regions_freq,
+    #     num_samples_line,
+    #     lr,
+    #     num_hanin_line_samples,
+    #     num_humayan_orthonormal_vectors,
+    #     lr_schedule_gamma,
+    #     lr_schedule_steps,
+    #     opt,
+    # )
+    #
     # if make_video:
     #     print("Generating moving animation of results...")
     #     make_live_animation(
@@ -323,10 +306,10 @@ def main(
     #         path=path,
     #     )
     #
-    # print("Dumping results...")
-    # with open("path.json", "w") as f:
-    #     history_json_serializable = tensor_to_jsonable(history)
-    #     json.dump(history_json_serializable, f, indent=2)
+    print("Dumping results...")
+    with open("path.json", "w") as f:
+        history_json_serializable = tensor_to_jsonable(history)
+        json.dump(history_json_serializable, f, indent=2)
 
     # if save_model:
     #     torch.save(network.state_dict(), f"{directory}/snapshot_final")
