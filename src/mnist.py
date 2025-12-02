@@ -15,6 +15,7 @@ def load_mnist(loss: str) -> (TensorDataset, TensorDataset):
         flatten(mnist_train.data.unsqueeze(-1) / 255),
         flatten(mnist_test.data.unsqueeze(-1) / 255),
     )
+    print(X_train.shape)
     y_train, y_test = (
         make_labels(torch.tensor(mnist_train.targets), loss),
         make_labels(torch.tensor(mnist_test.targets), loss),

@@ -46,11 +46,11 @@ def make_labels(y, loss):
 def load_cifar(loss: str) -> (TensorDataset, TensorDataset):
     cifar10_train = CIFAR10(root=DATASETS_FOLDER, download=True, train=True)
     cifar10_test = CIFAR10(root=DATASETS_FOLDER, download=True, train=False)
-    print(type(cifar10_train))
     X_train, X_test = (
         flatten(cifar10_train.data / 255),
         flatten(cifar10_test.data / 255),
     )
+    print(X_train.shape)
     y_train, y_test = (
         make_labels(torch.tensor(cifar10_train.targets), loss),
         make_labels(torch.tensor(cifar10_test.targets), loss),
