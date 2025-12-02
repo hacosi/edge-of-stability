@@ -173,7 +173,7 @@ def main(
         if regions_freq != -1 and step % regions_freq == 0:
             print("epoch ", step)
 
-            x = train_dataset.tensors[0]
+            X = train_dataset.tensors[0]
             y = train_dataset.tensors[1]
 
             # history["regions_pier"][step // regions_freq, :] = torch.tensor(
@@ -186,7 +186,7 @@ def main(
             history["regions_hanin"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_hanin(
                     model=network,
-                    x=x,
+                    X=X,
                     num_hanin_point_samples=num_hanin_point_samples,
                     num_hanin_line_samples=num_hanin_line_samples,
                 )
@@ -196,14 +196,14 @@ def main(
 
             history["regions_humayan"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_humayan(
-                    model=network, x=x, num_humayan_samples=num_humayan_samples, p=num_humayan_orthonormal_vectors
+                    model=network, X=X, num_humayan_samples=num_humayan_samples, p=num_humayan_orthonormal_vectors
                 )
             )
 
             history["regions_humayan_scale_0.1"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_humayan(
                     model=network,
-                    x=x,
+                    X=X,
                     num_humayan_samples=num_humayan_samples,
                     p=num_humayan_orthonormal_vectors,
                     scale=0.1,
@@ -213,7 +213,7 @@ def main(
             history["regions_humayan_scale_0.5"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_humayan(
                     model=network,
-                    x=x,
+                    X=X,
                     num_humayan_samples=num_humayan_samples,
                     p=num_humayan_orthonormal_vectors,
                     scale=0.5,
@@ -233,7 +233,7 @@ def main(
             history["regions_low_dim_grid_search"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_low_dim_grid_search(
                     model=network,
-                    X=x,
+                    X=X,
                 )
             )
             # history["regions_pca_sample"][step // regions_freq, :] = torch.tensor(
