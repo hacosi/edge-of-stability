@@ -19,7 +19,7 @@ def center(X_train: np.ndarray, X_test: np.ndarray):
 
 def standardize(X_train: np.ndarray, X_test: np.ndarray):
     std = X_train.std(0)
-    return (X_train / std, X_test / std)
+    return (X_train / (std + 1e-8), X_test / (std + 1e-8))
 
 
 def flatten(arr: np.ndarray):
