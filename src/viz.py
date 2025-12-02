@@ -159,15 +159,15 @@ def plot_training_results(
     # ax.set_title("Directional Probe Count of linear regions")
     # ax.grid(True)
     #
-    # ax = axes[3, 2]
-    # ax.plot(regions_steps, regions_low_dim_grid_search[:, 0].cpu())
-    # ax.fill_between(
-    #     regions_steps, regions_low_dim_grid_search[:, 1].cpu(), regions_low_dim_grid_search[:, 2].cpu(), alpha=0.3
-    # )
-    # ax.set_xlabel("Step")
-    # ax.set_ylabel("Regions")
-    # ax.set_title("Low Dim Grid Search Count of linear regions")
-    # ax.grid(True)
+    ax = axes[1, 1]
+    ax.plot(regions_steps, regions_low_dim_grid_search[:, 0].cpu())
+    ax.fill_between(
+        regions_steps, regions_low_dim_grid_search[:, 1].cpu(), regions_low_dim_grid_search[:, 2].cpu(), alpha=0.3
+    )
+    ax.set_xlabel("Step")
+    ax.set_ylabel("Regions")
+    ax.set_title("Low Dim Grid Search Count of linear regions")
+    ax.grid(True)
     #
     # ax = axes[2, 2]
     # ax.plot(regions_steps, regions_pca[:, 0].cpu())
