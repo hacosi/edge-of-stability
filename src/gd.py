@@ -175,8 +175,6 @@ def main(
 
             X = train_dataset.tensors[0]
             y = train_dataset.tensors[1]
-            print(X)
-            break
 
             # history["regions_pier"][step // regions_freq, :] = torch.tensor(
             #     num_linear_regions_pier(
