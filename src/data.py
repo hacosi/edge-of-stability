@@ -53,6 +53,8 @@ def num_classes(dataset_name: str) -> int:
         return 10
     elif dataset_name == "fashion":
         return 10
+    elif dataset_name == "mnist":
+        return 10
 
 
 def get_pooling(pooling: str):
