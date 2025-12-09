@@ -1,3 +1,4 @@
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import animation
 import numpy as np
@@ -21,6 +22,35 @@ def plot_training_results(
     """
     Replaces save_files_final. Generates and saves plots for loss, accuracy, and sharpness.
     """
+
+    matplotlib.rcParams.update(
+        {
+            "font.family": "serif",
+            "font.serif": [
+                "Computer Modern Roman",
+                "CMU Serif",
+                "Times New Roman",
+                "Times",
+                "DejaVu Serif",
+            ],
+            # Use Computer Modern math even when not using external LaTeX
+            "mathtext.fontset": "cm",
+            "axes.titlesize": 14,
+            "axes.labelsize": 13,
+            "legend.fontsize": 11,
+            "xtick.labelsize": 11,
+            "ytick.labelsize": 11,
+            "lines.linewidth": 2.0,
+            "savefig.dpi": 300,
+            "pdf.fonttype": 42,
+            "ps.fonttype": 42,
+        }
+    )
+    matplotlib.rcParams.update(
+        {
+            "text.usetex": False,
+        }
+    )
 
     train_loss = history["train_loss"]
     test_loss = history["test_loss"]
