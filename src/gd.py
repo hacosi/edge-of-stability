@@ -277,6 +277,7 @@ def main(
         # scheduler.step()
     if title == "":
         title = f"{dataset} | {arch_id} | {loss_str} | {opt} | lr {lr}"
+    print("here")
 
     for X, y in iterate_dataset(train_dataset, len(train_dataset)):
         counts = points_per_regions(model=network, batch=X, device=X.device)
