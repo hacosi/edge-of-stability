@@ -141,6 +141,7 @@ def main(
         # ),
     }
 
+    print("here")
     for step in range(0, max_steps):
         # if step == 2500:
         #     lr = 0.01
