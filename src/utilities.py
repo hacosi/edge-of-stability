@@ -314,6 +314,27 @@ def count_linear_regions(model, batch, device):
     return torch.unique(mask_concat_cpu, dim=0).shape[0]
 
 
+def points_per_regions(model, batch, device):
+    preacts = _collect_preacts_for_batch_on_device(model, batch, device=device)
+
+    if not preacts:
+        # All points fall into a single (trivial) region
+        return [batch.shape[0]]
+
+    # Build binary masks on device and concatenate along feature axis
+    masks = [(z > 0).to(torch.int8) for z in preacts]  # each (N, hidden)
+    mask_concat = torch.cat(masks, dim=1)  # (N, total_hidden)
+
+    # Move once to CPU for unique computation
+    mask_concat_cpu = mask_concat.cpu()
+
+    # Find unique regions and how many points fall into each
+    _, counts = torch.unique(mask_concat_cpu, dim=0, return_counts=True)
+
+    # Return as a Python list
+    return counts.tolist()
+
+
 def num_linear_regions_pier(
     model: nn.Module,
     X: torch.Tensor,

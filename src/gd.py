@@ -1,6 +1,7 @@
 import os
 import json
 from os import makedirs
+import matplotlib.pyplot as plt
 
 import torch
 from torch.nn.utils import parameters_to_vector
@@ -31,6 +32,7 @@ from utilities import (
     num_linear_regions_PCA,
     num_linear_regions_directional_probe,
     num_linear_regions_low_dim_grid_search,
+    points_per_regions,
 )
 from data import load_dataset, take_first, DATASETS
 from viz import plot_training_results, make_live_animation
@@ -112,12 +114,13 @@ def main(
         "test_loss": torch.zeros(max_steps),
         "train_acc": torch.zeros(max_steps),
         "test_acc": torch.zeros(max_steps),
+        "points_per_region": [],
         # "eigs": torch.zeros(max_steps // eig_freq if eig_freq >= 0 else 0),
         # "regions_pier": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        "regions_hanin": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        "regions_humayan": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        "regions_humayan_scale_0.1": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        "regions_humayan_scale_0.5": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        # "regions_hanin": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        # "regions_humayan": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        # "regions_humayan_scale_0.1": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        # "regions_humayan_scale_0.5": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         # # "regions_perturb": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         # # "regions_directional_probe": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         # "regions_low_dim_grid_search": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
@@ -274,6 +277,20 @@ def main(
     if title == "":
         title = f"{dataset} | {arch_id} | {loss_str} | {opt} | lr {lr}"
 
+    for X, y in iterate_dataset(train_dataset, len(train_dataset)):
+        counts = points_per_regions(model=network, batch=X, device=X.device)
+
+        print(counts)
+        # plt.figure()
+        # plt.hist(counts, bins=bins)
+        # plt.xlabel("Points per linear region")
+        # plt.ylabel("Frequency")
+        # plt.title(f"Linear Region Histogram (batch {i})")
+        #
+        # save_path = os.path.join(output_dir, f"region_hist_batch_{i}.png")
+        # plt.savefig(save_path, bbox_inches="tight")
+        # plt.close()
+
     results_dir = "results"
     os.makedirs(results_dir, exist_ok=True)
     print("Generating plot of results...")
@@ -306,6 +323,7 @@ def main(
     #         path=path,
     #     )
     #
+
     print("Dumping results...")
     with open(f"{path}.json", "w") as f:
         history_json_serializable = tensor_to_jsonable(history)
