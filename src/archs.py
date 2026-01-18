@@ -190,3 +190,5 @@ def load_architecture(arch_id: str, dataset_name: str) -> nn.Module:
         return fully_connected_net(dataset_name, [200, 200, 200], "relu", bias=True)
     elif arch_id == "fc-depth4":
         return fully_connected_net(dataset_name, [200, 200, 200, 200], "relu", bias=True)
+    elif arch_id == "fc-depth5":
+        return fully_connected_net(dataset_name, [200, 200, 200, 200, 200], "relu", bias=True)
