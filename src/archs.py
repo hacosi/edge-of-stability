@@ -182,11 +182,11 @@ def load_architecture(arch_id: str, dataset_name: str) -> nn.Module:
         return make_one_layer_network(h=100, activation="tanh")
 
     # ======= vary depth =======
-    elif arch_id == "fc-tanh-depth1":
-        return fully_connected_net(dataset_name, [200], "tanh", bias=True)
-    elif arch_id == "fc-tanh-depth2":
-        return fully_connected_net(dataset_name, [200, 200], "tanh", bias=True)
-    elif arch_id == "fc-tanh-depth3":
-        return fully_connected_net(dataset_name, [200, 200, 200], "tanh", bias=True)
-    elif arch_id == "fc-tanh-depth4":
-        return fully_connected_net(dataset_name, [200, 200, 200, 200], "tanh", bias=True)
+    elif arch_id == "fc-depth1":
+        return fully_connected_net(dataset_name, [200], "relu", bias=True)
+    elif arch_id == "fc-depth2":
+        return fully_connected_net(dataset_name, [200, 200], "relu", bias=True)
+    elif arch_id == "fc-depth3":
+        return fully_connected_net(dataset_name, [200, 200, 200], "relu", bias=True)
+    elif arch_id == "fc-depth4":
+        return fully_connected_net(dataset_name, [200, 200, 200, 200], "relu", bias=True)

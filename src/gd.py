@@ -117,10 +117,10 @@ def main(
         "points_per_region": [],
         # "eigs": torch.zeros(max_steps // eig_freq if eig_freq >= 0 else 0),
         # "regions_pier": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        # "regions_hanin": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        # "regions_humayan": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        # "regions_humayan_scale_0.1": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
-        # "regions_humayan_scale_0.5": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        "regions_hanin": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        "regions_humayan": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        "regions_humayan_scale_0.1": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
+        "regions_humayan_scale_0.5": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         # # "regions_perturb": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         # # "regions_directional_probe": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         # "regions_low_dim_grid_search": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
@@ -141,7 +141,6 @@ def main(
         # ),
     }
 
-    print("here")
     for step in range(0, max_steps):
         # if step == 2500:
         #     lr = 0.01
@@ -187,44 +186,44 @@ def main(
             # )
             # print("pier regions: ",
             #       history["regions_pier"][step // regions_freq])
-            # history["regions_hanin"][step // regions_freq, :] = torch.tensor(
-            #     num_linear_regions_hanin(
-            #         model=network,
-            #         X=X,
-            #         num_hanin_point_samples=num_hanin_point_samples,
-            #         num_hanin_line_samples=num_hanin_line_samples,
-            #     )
-            # )
-            # print("hanin regions: ",
-            #       history["regions_hanin"][step // regions_freq])
-            #
-            # history["regions_humayan"][step // regions_freq, :] = torch.tensor(
-            #     num_linear_regions_humayan(
-            #         model=network, X=X, num_humayan_samples=num_humayan_samples, p=num_humayan_orthonormal_vectors
-            #     )
-            # )
-            #
-            # history["regions_humayan_scale_0.1"][step // regions_freq, :] = torch.tensor(
-            #     num_linear_regions_humayan(
-            #         model=network,
-            #         X=X,
-            #         num_humayan_samples=num_humayan_samples,
-            #         p=num_humayan_orthonormal_vectors,
-            #         scale=0.1,
-            #     )
-            # )
-            #
-            # history["regions_humayan_scale_0.5"][step // regions_freq, :] = torch.tensor(
-            #     num_linear_regions_humayan(
-            #         model=network,
-            #         X=X,
-            #         num_humayan_samples=num_humayan_samples,
-            #         p=num_humayan_orthonormal_vectors,
-            #         scale=0.5,
-            #     )
-            # )
-            # print("humayan regions: ",
-            #       history["regions_humayan"][step // regions_freq])
+            history["regions_hanin"][step // regions_freq, :] = torch.tensor(
+                num_linear_regions_hanin(
+                    model=network,
+                    X=X,
+                    num_hanin_point_samples=num_hanin_point_samples,
+                    num_hanin_line_samples=num_hanin_line_samples,
+                )
+            )
+            print("hanin regions: ",
+                  history["regions_hanin"][step // regions_freq])
+
+            history["regions_humayan"][step // regions_freq, :] = torch.tensor(
+                num_linear_regions_humayan(
+                    model=network, X=X, num_humayan_samples=num_humayan_samples, p=num_humayan_orthonormal_vectors
+                )
+            )
+
+            history["regions_humayan_scale_0.1"][step // regions_freq, :] = torch.tensor(
+                num_linear_regions_humayan(
+                    model=network,
+                    X=X,
+                    num_humayan_samples=num_humayan_samples,
+                    p=num_humayan_orthonormal_vectors,
+                    scale=0.1,
+                )
+            )
+
+            history["regions_humayan_scale_0.5"][step // regions_freq, :] = torch.tensor(
+                num_linear_regions_humayan(
+                    model=network,
+                    X=X,
+                    num_humayan_samples=num_humayan_samples,
+                    p=num_humayan_orthonormal_vectors,
+                    scale=0.5,
+                )
+            )
+            print("humayan regions: ",
+                  history["regions_humayan"][step // regions_freq])
             # # history["regions_perturb"][step // regions_freq, :] = torch.tensor(
             # #     num_linear_regions_perturb(
             # #         X=X,
@@ -277,21 +276,20 @@ def main(
         # scheduler.step()
     if title == "":
         title = f"{dataset} | {arch_id} | {loss_str} | {opt} | lr {lr}"
-    print("here")
 
-    for X, y in iterate_dataset(train_dataset, len(train_dataset)):
-        counts = points_per_regions(model=network, batch=X, device=X.device)
-
-        print(counts)
-        # plt.figure()
-        # plt.hist(counts, bins=bins)
-        # plt.xlabel("Points per linear region")
-        # plt.ylabel("Frequency")
-        # plt.title(f"Linear Region Histogram (batch {i})")
-        #
-        # save_path = os.path.join(output_dir, f"region_hist_batch_{i}.png")
-        # plt.savefig(save_path, bbox_inches="tight")
-        # plt.close()
+    # for X, y in iterate_dataset(train_dataset, len(train_dataset)):
+    #     counts = points_per_regions(model=network, batch=X, device=X.device)
+    #
+    #     print(counts)
+    # plt.figure()
+    # plt.hist(counts, bins=bins)
+    # plt.xlabel("Points per linear region")
+    # plt.ylabel("Frequency")
+    # plt.title(f"Linear Region Histogram (batch {i})")
+    #
+    # save_path = os.path.join(output_dir, f"region_hist_batch_{i}.png")
+    # plt.savefig(save_path, bbox_inches="tight")
+    # plt.close()
 
     results_dir = "results"
     os.makedirs(results_dir, exist_ok=True)
