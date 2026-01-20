@@ -319,20 +319,30 @@ def points_per_regions(model, batch, device):
 
     if not preacts:
         # All points fall into a single (trivial) region
-        return [batch.shape[0]]
+        counts = torch.tensor([batch.shape[0]], dtype=torch.long)
+    else:
+        # Build binary masks on device and concatenate along feature axis
+        masks = [(z > 0).to(torch.int8) for z in preacts]  # each (N, hidden)
+        mask_concat = torch.cat(masks, dim=1)  # (N, total_hidden)
 
-    # Build binary masks on device and concatenate along feature axis
-    masks = [(z > 0).to(torch.int8) for z in preacts]  # each (N, hidden)
-    mask_concat = torch.cat(masks, dim=1)  # (N, total_hidden)
+        # Move once to CPU for unique computation
+        mask_concat_cpu = mask_concat.cpu()
 
-    # Move once to CPU for unique computation
-    mask_concat_cpu = mask_concat.cpu()
+        # Counts = number of points in each region (one entry per unique region)
+        _, counts = torch.unique(
+            mask_concat_cpu, dim=0, return_counts=True)  # (num_regions,)
 
-    # Find unique regions and how many points fall into each
-    _, counts = torch.unique(mask_concat_cpu, dim=0, return_counts=True)
+    # Build "region-size histogram":
+    # size k -> how many regions have exactly k points
+    # Example: counts = [1,1,2,5] => {1:2 regions, 2:1 region, 5:1 region}
+    size_to_num_regions = torch.bincount(
+        counts)  # index is "points per region"
+    # size_to_num_regions[0] is always 0 here; ignore it.
 
-    # Return as a Python list
-    return counts.tolist()
+    # Return as a dict like: {"1 pt per region": 12, "2 pts per region": 3, ...}
+    out = {f"{k}" for k in range(
+        1, size_to_num_regions.numel()) if size_to_num_regions[k] > 0}
+    return out
 
 
 def num_linear_regions_pier(

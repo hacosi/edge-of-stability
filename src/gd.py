@@ -114,7 +114,7 @@ def main(
         "test_loss": torch.zeros(max_steps),
         "train_acc": torch.zeros(max_steps),
         "test_acc": torch.zeros(max_steps),
-        # "points_per_region": [],
+        "points_per_region": [],
         # "eigs": torch.zeros(max_steps // eig_freq if eig_freq >= 0 else 0),
         "regions_pier": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
         # "regions_hanin": torch.zeros((max_steps // regions_freq if regions_freq >= 0 else 0), 3),
@@ -181,7 +181,7 @@ def main(
 
             history["regions_pier"][step // regions_freq, :] = torch.tensor(
                 num_linear_regions_pier(
-                    model=network, x=X, y=y, num_samples_pairs=num_samples_pairs, num_samples_line=num_samples_line
+                    model=network, X=X, y=y, num_samples_pairs=num_samples_pairs, num_samples_line=num_samples_line
                 )
             )
             print("pier regions: ",
@@ -277,10 +277,10 @@ def main(
     if title == "":
         title = f"{dataset} | {arch_id} | {loss_str} | {opt} | lr {lr}"
 
-    # for X, y in iterate_dataset(train_dataset, len(train_dataset)):
-    #     counts = points_per_regions(model=network, batch=X, device=X.device)
-    #
-    #     print(counts)
+    for X, y in iterate_dataset(train_dataset, len(train_dataset)):
+        counts = points_per_regions(model=network, batch=X, device=X.device)
+        history["points_per_region"] = counts
+
     # plt.figure()
     # plt.hist(counts, bins=bins)
     # plt.xlabel("Points per linear region")
