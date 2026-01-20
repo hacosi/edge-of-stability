@@ -363,7 +363,7 @@ def num_linear_regions_pier(
         attempts += 1
         idx1 = torch.randint(0, N, (1,)).item()
         idx2 = torch.randint(0, N, (1,)).item()
-        if not idx1 == idx2 and not torch.equal(y[idx1], y[idx2]):
+        if not idx1 == idx2 and torch.equal(y[idx1], y[idx2]):
             x1 = X[idx1].unsqueeze(0).to(device)
             x2 = X[idx2].unsqueeze(0).to(device)
             alpha = torch.linspace(
