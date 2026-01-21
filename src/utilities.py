@@ -340,8 +340,11 @@ def points_per_regions(model, batch, device):
     # size_to_num_regions[0] is always 0 here; ignore it.
 
     # Return as a dict like: {"1 pt per region": 12, "2 pts per region": 3, ...}
-    out = {f"{k}" for k in range(
-        1, size_to_num_regions.numel()) if size_to_num_regions[k] > 0}
+    out = {
+        f"{k}": int(size_to_num_regions[k].item())
+        for k in range(1, size_to_num_regions.numel())
+        if size_to_num_regions[k] > 0
+    }
     return out
 
 
